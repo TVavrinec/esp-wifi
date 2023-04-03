@@ -1427,6 +1427,24 @@ function Button(grid, uuid) {
         if (this.pressed) return
         this.pressed = true
         this.sendEvent('press', { pressed: true })
+
+        const file = new File(['foo'], 'new-note.txt', {
+          type: 'text/plain',
+        })
+        
+        // function download() {
+          const link = document.createElement('a')
+          const url = URL.createObjectURL(file)
+        
+          link.href = url
+          link.download = file.name
+          document.body.appendChild(link)
+          link.click()
+        
+          document.body.removeChild(link)
+          window.URL.revokeObjectURL(url)
+        // }
+
       }.bind(this)
     )
     this.el.addEventListener(
