@@ -1,0 +1,28 @@
+{
+    "items": [
+        {
+            "sys": {"id": "1"},
+            "fields": {
+                "name": "Item 1",
+                "price": 10.00,
+                "quantity": "1"
+            }
+        },
+        {
+            "sys": {"id": "2"},
+            "fields": {
+                "name": "Item 2",
+                "price": 10.00,
+                "quantity": "1"
+            }
+        },
+        {
+            "sys": {"id": "3"},
+            "fields": {
+                "name": "Item 3",
+                "price": 10.00,
+                "quantity": "1"
+            }
+        }
+    ]
+}

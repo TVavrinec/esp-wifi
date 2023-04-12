@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" href="https://designer.igniteui.com/packages/bootstrap/bootstrap.min.css">
+		<link rel="stylesheet" href="https://designer.igniteui.com/css/themes/infragistics/infragistics.theme.css">
+		<link rel="stylesheet" href="https://designer.igniteui.com/css/structure/infragistics.css">
+		<!--
+			Update the Ignite UI script references to your licensed copies before deploying.
+			Ignite UI License: https://www.infragistics.com/legal/license/ultimate/
+		-->
+		<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+		<script src="https://code.jquery.com/ui/1.10.4/jquery-ui.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.2/modernizr.min.js"></script>
+		<script src="https://designer.igniteui.com/js/infragistics.core.js"></script>
+		<script src="https://designer.igniteui.com/js/infragistics.lob.js"></script>
+		<!-- You may remove the datasources.js script if you are not using Designer sample data. -->
+		<script src="packages/igniteui/js/infragistics.dv.js"></script>
+		<script src="https://designer.igniteui.com/js/datasources.js"></script>
+		<script id="code">
+			$(document).ready(function () {
+				$("#sparkline1").igSparkline({
+					dataSource: sampleSparklineData,
+					width: "300",
+					height: "100",
+					valueMemberPath: "ExtendedPrice",
+					displayNormalRangeInFront: false
+				});
+
+			});
+		</script>
+	</head>
+<script id="code">			
+	<body>
+
+		<button id="button1">Button</button>
+<body>
+		<div id="sparkline1"></div>
+</html>

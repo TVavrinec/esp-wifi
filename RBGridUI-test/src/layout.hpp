@@ -21,7 +21,7 @@
 #pragma once
 
 #include <esp_log.h>
-#include "gridui/src/gridui.h"
+#include "gridui.h"
 
 namespace gridui {
 

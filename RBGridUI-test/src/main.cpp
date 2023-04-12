@@ -2,7 +2,7 @@
 
 #include "BluetoothSerial.h" 
 
-#include "gridui/src/gridui.h"
+#include "gridui.h"
 #include "rbprotocol.h"
 #include "rbwebserver.h"
 #include "rbwifi.h"
@@ -95,8 +95,8 @@ void setup() {
     // ESP_BT.end();
     // delay(100);
     // WiFi::connect("Vodafone-AEA0", "WS677xkrpuh2arAe");
-    WiFi::startAp("my_WiFi", "12345678");
-    // WiFi::connectAndStartAp("Vodafone-AEA0", "WS677xkrpuh2arAe", "my_WiFi", "12345678");
+    // WiFi::startAp("my_WiFi", "12345678");
+    WiFi::connectAndStartAp("Vodafone-AEA0", "WS677xkrpuh2arAe", "my_WiFi", "12345678");
 
     
 
