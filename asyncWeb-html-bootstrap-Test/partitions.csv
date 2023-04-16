@@ -1,0 +1,2 @@
+# Name,   Type, SubType, Offset,  Size, Flags
+spiffs,   data, spiffs,  0x9000, 0x7f7000,

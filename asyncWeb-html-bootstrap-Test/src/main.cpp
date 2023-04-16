@@ -1,7 +1,7 @@
-#include "WiFi.h"
-#include "SPIFFS.h"
-#include "ESPAsyncWebServer.h"
- 
+#include <WiFi.h>
+#include <SPIFFS.h>
+#include <ESPAsyncWebServer.h>
+	
 /* Put IP Address details */
 int progress_bar_value = 0;
 IPAddress local_IP(192,168,0,171);
@@ -32,9 +32,9 @@ void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventT
   }
 }
  
-void setup(){
+void setup(){  
   Serial.begin(115200);
- 
+  Serial.println("Websocket client connected\n");
   if(!SPIFFS.begin()){
      Serial.println("An Error has occurred while mounting SPIFFS");
      return;
@@ -98,7 +98,15 @@ void setup(){
 
   // Route to set GPIO to HIGH
   server.on("/update", HTTP_GET, [](AsyncWebServerRequest *request){
-    printf("LED ON\n");
+    printf("\ngetParam(0) = %s\n", request->getParam(0));
+    printf("getParam(1) = %s\n", request->getParam(1));
+    if (request->hasParam("type")) {
+      String test = request->getParam("type")->value();
+      printf("type: %s\n", test);
+      test = request->getParam("id")->value();
+      printf("id: %s\n\n", test);
+    }
+    // printf("\n%s\n",test);
     request->send(SPIFFS, "/index.html", String());
   });
  
@@ -107,12 +115,22 @@ void setup(){
   });
  
   server.begin();
+  while(1){  
+    for(int i = 0; i < 100; i++){
+      if(globalClient != NULL && globalClient->status() == WS_CONNECTED){
+        String randomNumber = "arr: ," + String(i*i) + "," + String(i) + ",";
+        globalClient->text(randomNumber);
+      }
+      delay(100);
+    }
+    delay(10000);
+  }
 }
  
 void loop(){
-   if(globalClient != NULL && globalClient->status() == WS_CONNECTED){
-      String randomNumber = "arr: ," + String(random(0,20)) + "," + String(random(0,20)) + ",";
-      globalClient->text(randomNumber);
-   }
-   delay(4000);
+  // if(globalClient != NULL && globalClient->status() == WS_CONNECTED){
+  //   String randomNumber = "arr: ," + String(random(0,20)) + "," + String(random(0,20)) + ",";
+  //   globalClient->text(randomNumber);
+  // }
+  delay(10000);
 }
