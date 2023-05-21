@@ -19,18 +19,18 @@ ws.onmessage = function(evt) {
     var arr = evt.data.split(",");
     var x = arr[1];
     var y = Math.round(arr[2]);
-    if(xValues.length > y){
-      xValues[y] = x;
+    if(xArray.length > y){
+      xArray[y] = x;
     }
     else{
-      while(!(xValues.length > y)){
-        xValues.push(0);
+      while(!(xArray.length > y)){
+        xArray.push(0);
       }
-      xValues[y] = x;
+      xArray[y] = x;
     }
     line = [];
-    for(var i = 0; i < xValues.length; i++){
-      line.push([i, xValues[i]]);
+    for(var i = 0; i < xArray.length; i++){
+      line.push([i, xArray[i]]);
     }
     chartUpdate();    
   }
@@ -53,37 +53,25 @@ ws.onmessage = function(evt) {
 // }
 
 
-class Car {
-
-  constructor(name, speed) {
-      this.name = name;
-      this.speed = speed;
-  }
-
-  showSpeed() {
-      console.log(this.speed);
-  }
-}
-
-
 function onClick(element){
-  car = new Car("BMW", 200);
-  car.showSpeed();
+
+  document.cookie = "username=John Doe";
+
   
   graph = new myGraph("chart1");
   graph.setLine("measure", [
-                                    [ 10 , 10], 
-                                    [ 11 , 20], 
-                                    [ 12 , 30], 
-                                    [ 13 , 40],
-                                    [ 14 , 50],
-                                    [ 15 , 60],
-                                    [ 16 , 70],
-                                    [ 17 , 80],
-                                    [ 18 , 90],
-                                    [ 19 , 100],
-                                    [ 20 , 110],
-                                  ]);
+                              [ 10 , 10], 
+                              [ 11 , 20], 
+                              [ 12 , 30], 
+                              [ 13 , 40],
+                              [ 14 , 50],
+                              [ 15 , 60],
+                              [ 16 , 70],
+                              [ 17 , 80],
+                              [ 18 , 90],
+                              [ 19 , 100],
+                              [ 20 , 110],
+                            ]);
   graph.updateGraph();
 
   // Wrapping in nv.addGraph allows for '0 timeout render', stores rendered charts in nv.graphs,

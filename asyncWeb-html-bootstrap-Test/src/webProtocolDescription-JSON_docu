@@ -1,0 +1,127 @@
+
+// wifi actions ************************************************************************************************************************************************************************************
+// wifi station
+
+/**
+ * wifi action
+ * get available wifi list
+*/
+{
+    "type": "wifi",
+    "station": {
+        "get": "wifi_list"
+    }
+}
+// Server Response
+{
+    "type": "wifi",
+    "station": {
+        "wifiList": [
+            {
+                "ssid": "wifi",
+                "signal": 100, // 0-100
+                "state": "connected"
+            },
+            {
+                "ssid": "wifi2",
+                "signal": 50,
+                "state": "not_connected"
+            }
+        ]
+    }
+}
+
+
+/**
+ * wifi action
+ * turn on/off station
+*/
+{
+    "type": "wifi",
+    "station": {
+        "on": true // false
+    }
+}
+// Server Response
+{
+    "type": "wifi",
+    "station": {
+        "on": true // false
+    }
+}
+
+/**
+ * wifi action
+ * connect to wifi with ssid and password from database
+*/
+{
+    "type": "wifi",
+    "station": {
+        "ssid": "wifi"
+    }
+}
+// Server Response
+{
+    "type": "wifi",
+    "station": {
+        "connected": "connect" // "not available", "unknown wifi"
+    }
+}
+
+
+/**
+ * wifi action
+ * connect to wifi with ssid and password
+*/
+{
+    "type": "wifi",
+    "station": {
+        "ssid": "wifi",
+        "password": "password"
+    }
+}
+// Server Response
+{
+    "type": "wifi",
+    "station": {
+        "connected": "connect" // "not available", "wrong password"
+    }
+}
+
+// wifi access point
+/**
+ * wifi action
+ * turn on/off access point
+*/
+{
+    "type": "wifi",
+    "ap": {
+        "on": true // false
+    }
+}
+// Server Response
+{
+    "type": "wifi",
+    "ap": {
+        "on": true // false
+    }
+}
+
+/**
+ * wifi action
+ * set ssid and password for access point
+*/
+{
+    "type": "wifi",
+    "ap": {
+        "ssid": "wifi",
+        "password": "password"
+    }
+}
+// Server Response
+{
+    "type": "wifi",
+    "ap": {
+        "set": true // false
+    }
+}

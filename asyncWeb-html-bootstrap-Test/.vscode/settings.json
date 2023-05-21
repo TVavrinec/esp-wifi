@@ -1,6 +1,10 @@
 {
     "liveServer.settings.port": 5502,
     "files.associations": {
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "*.tcc": "cpp",
+        "istream": "cpp",
+        "ostream": "cpp",
+        "*.inc": "cpp"
     }
 }

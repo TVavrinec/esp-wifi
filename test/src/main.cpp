@@ -1,136 +1,97 @@
-#include <Arduino.h>
+#include <WiFi.h>
 
-#include "BluetoothSerial.h" 
+// debug log, set to 1 to enable
+#define ENABLE_DEBUG_LOG 1
 
-#include "gridui/src/gridui.h"
-#include "rbprotocol.h"
-#include "rbwebserver.h"
-#include "rbwifi.h"
+// wifi config
+const char *ssid = "YOUR_WIFI_SSID";
+const char *password = "YOUR_WIFI_PASS";
 
+// ethernet config
+const IPAddress local_IP(192, 168, 0, 98);
+const IPAddress gateway(192, 168, 0, 99);
+const IPAddress subnet(255, 255, 255, 0);
+const IPAddress primaryDNS(8, 8, 8, 8);
+const IPAddress secondaryDNS(8, 8, 4, 4);
 
+// rs-server config
+const int serverPort = 1234;
 
+// rs port config
+const int baudrate = 115200;
+const int rs_config = SERIAL_8N1;
 
-// ----------------------------------------------------------------
-// void WiFi::connectAndStartAp(const char* sta_ssid, const char* sta_password, const char* ap_ssid, const char* ap_password, uint8_t ap_channel){
-//     init();
+// reading buffor config
+#define BUFFER_SIZE 1024
 
-//     esp_wifi_stop();
+// global objects
+WiFiServer server;
+byte buff[BUFFER_SIZE];
 
-//     if (gNetIf) {
-//         esp_netif_destroy(gNetIf);
-//     }
-//     if (gNetIfAP) {
-//         esp_netif_destroy(gNetIfAP);
-//     }
+void setup()
+{
+    // init rs port
+    Serial.begin(115200); // baudrate, rs_config
 
-//     gNetIfAP = esp_netif_create_default_wifi_ap();
-//     gNetIf   = esp_netif_create_default_wifi_sta();
+    // init wifi connection
+    if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
+    {
+        printf("log: Failed to configure network settings\n");
+    }
 
-//     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
+    WiFi.begin("Vodafone-AEA0", "WS677xkrpuh2arAe");
+    WiFi.softAP("my_WiFi", "12345678");
 
-//     wifi_config_t cfg = {};
+    // while (WiFi.status() != WL_CONNECTED)
+    // {
+    //     printf("log: connecting to WiFi network\n");
+    //     delay(500);
+    // }
 
-//     if (strlen(ap_password) >= 8) {
-//         snprintf((char*)cfg.ap.password, 64, "%s", ap_password);
-//         cfg.ap.authmode = WIFI_AUTH_WPA2_PSK;
-//     } else {
-//         ESP_LOGE(TAG, "The WiFi password is too short, 8 characters required, leaving the WiFI open!");
-//         cfg.ap.authmode = WIFI_AUTH_OPEN;
-//     }
-//     snprintf((char*)cfg.ap.ssid, 32, "%s", ap_ssid);
-//     cfg.ap.channel = ap_channel;
-//     cfg.ap.beacon_interval = 400;
-//     cfg.ap.max_connection = 4;
-//     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &cfg));
+#if ENABLE_DEBUG_LOG == 1
+    Serial.println("connected to WiFi");
+    Serial.print("IP adddr: ");
+    Serial.println(WiFi.localIP());
+#endif
+    delay(1000);
 
-//     cfg = {};
+    // start server
+    server = WiFiServer(serverPort);
+    server.begin();
+    delay(1000);
+    printf("log: server started\n");
+}
 
-//     snprintf((char*)cfg.sta.ssid, 32, "%s", sta_ssid);
-//     snprintf((char*)cfg.sta.password, 64, "%s", sta_password);
-//     esp_wifi_set_config(WIFI_IF_STA, &cfg);
-
-//     ESP_ERROR_CHECK(esp_wifi_start());
-
-//     // esp_wifi_set_bandwidth(WIFI_IF_AP, WIFI_BW_HT20);
-// }
-
-
-
-
-using namespace rb;
-using namespace gridui;
-
-// You can include layout.hpp in many .cpp files,
-// but ONE of those must have this define before it.
-#define GRIDUI_LAYOUT_DEFINITION
-#include "layout.hpp"
-
-// #include "SmartLeds.h"
-
-static Protocol* gProt = nullptr;
-
-static void onPacketReceived(const std::string& cmd, rbjson::Object* pkt) {
-    // Let GridUI handle its packets
-    if (UI.handleRbPacket(cmd, pkt))
+void loop()
+{
+    // wait for client
+    WiFiClient client = server.available();
+    if (!client)
         return;
 
-    // ...any other non-GridUI packets
-}
+    printf("log: client found\n");
+    while (client.connected())
+    {
+        int size = 0;
 
-// static SmartLed gRgbLed(LED_WS2812, 1, 26);
-BluetoothSerial ESP_BT;
+        // read data from wifi client and send to serial
+        while ((size = client.available()))
+        {
+            size = (size >= BUFFER_SIZE ? BUFFER_SIZE : size);
+            client.read(buff, size);
+            Serial.write(buff, size);
+            Serial.flush();
+        }
 
-void setup() {
-    // gRgbLed[0] = Rgb(255, 0, 0);
-    // gRgbLed.show();
-
-    //  ------------------------------------------------------- //WiFi::connect("Anthrophobia", "Ku1ata2elvA");   // 192.168.0.171/index.html
-    // printf("Connecting to ESP_BT\n");
-    // ESP_BT.begin("ESP32_Control");
-
-    // delay(10000);
-
-    // printf("Connected to ESP_WiFi\n");
-    // ESP_BT.disconnect();
-    // ESP_BT.end();
-    // delay(100);
-    // WiFi::connect("Vodafone-AEA0", "WS677xkrpuh2arAe");
-    WiFi::startAp("my_WiFi", "12345678");   
-    WiFi::connectAndStartAp("Vodafone-AEA0", "WS677xkrpuh2arAe", "my_WiFi", "12345678");
-
-    
-
-    // Initialize RBProtocol
-    gProt = new Protocol("FrantaFlinta", "Robocop", "Compiled at " __DATE__ " " __TIME__, onPacketReceived);
-    gProt->start();
-
-    // Start serving the web page
-    rb_web_start(80);
-
-    // Initialize the UI builder
-    UI.begin(gProt);
-
-    // Build the UI widgets. Positions/props are set in the layout, so most of the time,
-    // you should only set the event handlers here.
-    auto builder = Layout.begin();
-
-    builder.Button1.onPress([](Button& b) {
-        printf("Button 1 pressed\n");
-    });
-
-
-    // builder.sliderG.onChanged([](Slider& s) {
-    //     printf("Slider G: %d)\n", s.value());
-    //     // gRgbLed[0].g = s.value();
-    //     // gRgbLed.wait();
-    //     // gRgbLed.show();
-    // });
-
-    // Commit the layout. Beyond this point, calling any builder methods on the UI is invalid.
-    builder.commit();
-}
-
-void loop() {
-    printf("IP: %x\n", WiFi::getIp());
-    delay(1000);
+        // read data from serial and send to wifi client
+        while ((size = Serial.available()))
+        {
+            size = (size >= BUFFER_SIZE ? BUFFER_SIZE : size);
+            Serial.readBytes(buff, size);
+            client.write(buff, size);
+            client.flush();
+        }
+    }
+    printf("log: client disconnected\n");
+    client.stop();
 }

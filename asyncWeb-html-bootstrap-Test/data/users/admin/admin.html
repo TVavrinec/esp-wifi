@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Exactis-SMC admin</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="bootstrap.min.css" rel="stylesheet">
+	<link href="all.min.css" rel="stylesheet">
+
+	<script src="d3.min.js" charset="utf-8"></script>
+    <script src="nv.d3.js"></script>
+
+	<script src="bootstrap.bundle.min.js"></script>
+	<script src="jquety-3.5.1.min.js"></script>
+	<script src="popper.min.js"></script>
+
+	<script src="function.js"></script>
+	<script src="adminScript.js"></script>
+</head>
+
+<body>
+	<div class="container-fluid p-1 bg-primary text-white text-center">
+	<h1>Exactis-SMC admin</h1>
+	</div>
+
+	<ul class="nav c">
+		<li class="nav-item">
+		<a class="nav-link active" data-bs-toggle="tab" href="#mesure">Mesure</a>
+		</li>
+		<li class="nav-item">
+		<a class="nav-link" data-bs-toggle="tab" href="#disabled">Disabled</a>
+		</li>
+		<li class="nav-item">
+		<!-- <a class="nav-link dropdown" data-bs-toggle="tab" href="#settings">Settings</a> -->
+		<a class="nav-link dropdown-toggle" href="#settings" role="button" data-bs-toggle="dropdown">Settings</a>
+			<ul class="dropdown-menu">
+			<li><a class="dropdown-item" data-bs-toggle="tab" href="#wifi">WiFi</a></li>
+			<!-- <li><a class="dropdown-item" data-bs-toggle="tab" href="#user">Users</a></li>
+			<li><a class="dropdown-item" data-bs-toggle="tab" href="#test">Test</a></li> -->
+			</ul>
+		</li>
+	</ul>
+
+	<div class="tab-content">
+		<div id="mesure" class="tab-pane in active">
+			<h3>Mesure</h3>
+		
+			<div class="container mt-5">
+				<div class="row">
+					<div class="col-sm-1">
+						<button id="b_start" type="button" class="btn btn-primary" onclick="onClick(this)">Start</button>
+						
+					</div>
+					<div class="col-sm-11">
+						<!-- <canvas class="my-4 w-100" id="myChart" width="1026" height="433" style="display: block; box-sizing: border-box; height: 433px; width: 1026px;"> -->
+							<div id="chart1" style="height: 40em; width: 1026px;">
+								<svg></svg>
+							</div>
+						<!-- </canvas> -->
+					</div>
+				</div>
+			</div>
+		
+			<div class="container mt-5">
+				<div class="row">
+					<div class="col-sm-4">
+						<button id="b_c1" type="button" class="btn btn-primary" onclick="onClick(this)">Column 1</button>
+						<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p>
+						<p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris...</p>
+					</div>
+					<div class="col-sm-4">
+						<button id="b_c2" type="button" class="btn btn-primary" onclick="onClick(this)">Column 2</button>
+						<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p>
+						<p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris...</p>
+					</div>
+					<div class="col-sm-4">
+						<button id="b_c3" type="button" class="btn btn-primary" onclick="onClick(this)">Column 3</button>        
+						<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p>
+						<p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris...</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="progress">
+				<div class="progress-bar progress-bar-striped" style="min-width: 20px;"></div>
+			</div>
+		</div>
+		<div id="wifi" class="tab-pane fade" style="margin-top: 2%; margin-left: 5%; margin-right: 5%;">
+			<!-- <div id="wifi" class="tab-pane fade"> -->
+				<div class="container-fluid mt-5">
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="container">
+								<h1><img src="wifi-high-svgrepo-com.svg" width="50" height="50" style="margin-top: -10px;"></i> WiFi List</h1>
+								<ul id="wifiList" class="list-group"></ul>
+								
+								<!-- password entry window  -->
+								<div class="modal fade" id="wifiPasswordWin" role="dialog">
+									<div class="modal-dialog">
+										<!-- Modal content-->
+										<div class="modal-content">
+
+											<h4 class="modal-title">							
+												<div class="wifiName" style="display: flex; justify-content: center; align-items: center;">
+													<p id="wifiName"></p>
+												</div>
+											</h4>
+											<form id="wifiForm" style="margin-left:5%; margin-right:5%;">
+												<div class="form-floating mb-3">
+													<input type="password" class="form-control" id="password" placeholder="Password">
+													<label for="password">Wifi password</label>
+												</div>
+												<div class="row">
+													<div class="col-sm-6">
+														<button type="button" id="wifiPasswordButton" class="btn btn-primary w-100">Connect</button>
+													</div>
+													<div class="col-sm-6">
+														<button type="button" id="wifiCancelButton" class="btn btn-default w-100">Cancel</button>
+													</div>
+												</div>
+											</form>
+
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<div class="container">
+								<h1 class="text-center mb-4">AP settings</h1>
+								<form id="apForm">
+									<div class="row" style="margin-bottom: 5%;">
+										<div class="col-sm-6">
+											<button type="button" id="apOffButton" class="btn btn-primary w-100">Off</button>
+										</div>
+										<div class="col-sm-6">
+											<button type="button" id="apOnButton" class="btn btn-primary w-100">On</button>
+										</div>
+									</div>
+									<div class="form-floating mb-3">
+										<input type="text" id="apSsid" class="form-control" placeholder="Username">
+										<label for="username">AP SSID</label>
+									</div>
+									<div class="form-floating mb-3">
+										<input type="password" id="apPassword" class="form-control" placeholder="Password">
+										<label for="password">AP password</label>
+									</div>
+									<button type="button" id="apSetButton" class="btn btn-primary w-100">Confirm settings</button>
+								</form>
+							</div>
+						</div>
+						<script src="settings.js"></script>
+					</div>
+				</div>
+				<!-- </div> -->
+			<div id="users" class="tab-pane fade">
+				<h3>Menu 2</h3>
+				<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p>
+			</div>
+		</div>
+		<div id="user" class="tab-pane fade">
+			<!-- <div id="wifi" class="tab-pane fade"> -->
+				<h3>Users</h3>
+				<div class="col-sm-4">
+					<div class="container">
+						<h1><img src="wifi-high-svgrepo-com.svg" width="50" height="50" style="margin-top: -10px;"></i> WiFi List</h1>
+						<ul id="wifiList" class="list-group"></ul>
+						
+						<!-- password entry window  -->
+						<div class="modal fade" id="wifiPasswordWin" role="dialog">
+							<div class="modal-dialog">
+							
+							<!-- Modal content-->
+							<div class="modal-content">
+								<h4 class="modal-title">							
+									<div class="wifiName" style="display: flex; justify-content: center; align-items: center;">
+										<p id="wifiName"></p>
+									</div>
+								</h4>
+								<form style="margin-left:5%; margin-right:5%;">
+									<div class="form-floating mb-3">
+										<input type="password" class="form-control" id="password" placeholder="Password">
+										<label for="password">Wifi password</label>
+									</div>
+									<div class="row">
+										<div class="col-sm-6">
+											<button type="click" id="wifiPasswordButton" class="btn btn-primary w-100">Connect</button>
+										</div>
+										<div class="col-sm-6">
+											<button type="click" id="wifiCancelButton" class="btn btn-default w-100">Cancel</button>
+										</div>
+									</div>
+							</div>
+							
+							</div>
+						</div>
+						
+
+					</div>
+				</div>
+				<div class="col-sm-8">
+				</div>
+				<script src="settings.js"></script>
+			<!-- </div> -->
+			<div id="users" class="tab-pane fade">
+				<h3>Menu 2</h3>
+				<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p>
+			</div>
+		</div>
+		<div id="test" class="tab-pane fade">
+			<!-- <div id="wifi" class="tab-pane fade"> -->
+				<h3>Test</h3>
+				<div class="col-sm-4">
+					<div class="container">
+						<h1><img src="wifi-high-svgrepo-com.svg" width="50" height="50" style="margin-top: -10px;"></i> WiFi List</h1>
+						<ul id="wifiList" class="list-group"></ul>
+						
+						<!-- password entry window  -->
+						<div class="modal fade" id="wifiPasswordWin" role="dialog">
+							<div class="modal-dialog">
+							
+							<!-- Modal content-->
+							<div class="modal-content">
+								<h4 class="modal-title">							
+									<div class="wifiName" style="display: flex; justify-content: center; align-items: center;">
+										<p id="wifiName"></p>
+									</div>
+								</h4>
+								<form style="margin-left:5%; margin-right:5%;">
+									<div class="form-floating mb-3">
+										<input type="password" class="form-control" id="password" placeholder="Password">
+										<label for="password">Wifi password</label>
+									</div>
+									<div class="row">
+										<div class="col-sm-6">
+											<button type="click" id="wifiPasswordButton" class="btn btn-primary w-100">Connect</button>
+										</div>
+										<div class="col-sm-6">
+											<button type="click" id="wifiCancelButton" class="btn btn-default w-100">Cancel</button>
+										</div>
+									</div>
+							</div>
+							
+							</div>
+						</div>
+						
+
+					</div>
+				</div>
+				<div class="col-sm-8">
+				</div>
+				<script src="settings.js"></script>
+			<!-- </div> -->
+			<div id="users" class="tab-pane fade">
+				<h3>Menu 2</h3>
+				<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p>
+			</div>
+		</div>
+		<div id="disabled" class="tab-pane fade">
+			<h3>Menu 2</h3>
+			<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.</p>
+		</div>
+	</div>
+</body>
+</html>
