@@ -46,7 +46,8 @@ function wifiAction(element){
     type: 'wifi', 
     connect: {
       ssid
-    }}));
+    }
+  }));
 }
 
 function wifiCancelButton(){
@@ -71,7 +72,8 @@ function apSetButton(){
     ap: {
       ssid, 
       password
-    }}));
+    }
+  }));
 }
 
 function apOnButton(){
@@ -79,7 +81,8 @@ function apOnButton(){
     type: 'wifi', 
     ap: {
       on: true
-    }}));
+    }
+  }));
 }
 
 function apOffButton(){  
@@ -87,7 +90,17 @@ function apOffButton(){
     type: 'wifi', 
     ap: {
       on: false
-    }}));
+    }
+  }));
+}
+
+function wifiLitRegest(){
+  ws.send(JSON.stringify({ 
+    type: 'wifi', 
+    station: {
+      get: 'wifi_list'
+    }
+  }));
 }
 
 // incoming wifi message from server **********************************************************************************************************************
@@ -117,9 +130,10 @@ function stationMessage(message){
     }
     else if(message.connect === 'not available'){
       console.log('WiFi not available');
+      wifiListRegest();
     }
     else if(message.connect === 'connected'){
-
+      wifiListRegest();
     }
     else{
       console.log('Unknown "connect" message');
@@ -154,23 +168,12 @@ function apMessage(message){
   }
 }
 
-function wifiMessage(message){
-  if ('station' in message){
-  }
-  else if ('ap' in message){
-    apMessage(message.ap);
-  }
-  else{
-    console.log('Unknown message');
-  }
-
-}
-
 function solverWifiMessage(message){
   if ('station' in message){
     stationMessage(message.station);
   }
   else if ('ap' in message){
+    apMessage(message.ap);
     console.log('Unknown message');
   }
   else{

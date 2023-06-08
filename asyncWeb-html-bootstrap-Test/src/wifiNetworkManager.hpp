@@ -40,18 +40,27 @@ private:
     std::mutex _mutex__;
 
     String _AP_ssid;
+    String _AP_password;
     String _connectedWifiNetwork;
+    String _connectedWifiPassword;
     csvDatabese *_wifiDatabaze;
     String getAvailableWifiFromDatabaze();
 
-    void startAP(const char* AP_ssid = "Exactis-SMC", const char* AP_password = "12345678");
+    void _startAP(const char* AP_ssid = "Exactis-SMC", const char* AP_password = "12345678");
 
 public:
     wifi_result_t changeWifi(String ssid, String password);
     wifi_result_t changeWifi(String ssid);
     
+    void startStation();
+    void stopStation();
+
     wifiNetwork getConnectedWifiNetwork();
     std::vector<wifiNetwork> getAvailableWifiList();
+
+    void restartAP(const char* AP_ssid = "Exactis-SMC", const char* AP_password = "12345678");
+    void stopAP();
+    void startAP();
 
     wifiNetworkManager(csvDatabese *wifiDatabaze, bool AP_always_on = true, const char* AP_ssid = "Exactis-SMC", const char* AP_password = "12345678");
     ~wifiNetworkManager();

@@ -69,8 +69,14 @@ private:
 
     // Admin
     machineStates adminProcess(cJSON & json);
-    void wifiEvent(cJSON & json);
     void pushAdminPage();
+
+    void wifiEvent(cJSON & json);
+      void apEvent(cJSON & json);
+      void stationEvent(cJSON & json);
+        void stationGetEvent(cJSON & json);
+        void stationOnEvent(cJSON & json);
+        void stationSsidEvent(cJSON & json);
 
     void sendWifiList();
     

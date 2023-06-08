@@ -29,6 +29,8 @@ public:
 
     void addRecord(std::vector<String> record);
 
+    void changeRecord(const char *name, std::vector<String> record);
+
     void deleteRecord(const char *name);
 
     int getNumberOfRecords(){

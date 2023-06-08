@@ -5,15 +5,16 @@ wifiNetworkManager::wifiNetworkManager(csvDatabese *wifiDatabaze, bool AP_always
     _wifiDatabaze = wifiDatabaze;
     String availableWifi = getAvailableWifiFromDatabaze();
     if(availableWifi != ""){
-        WiFi.begin(availableWifi.c_str(), _wifiDatabaze->getRecordCell(availableWifi.c_str(), "password").c_str());
         _connectedWifiNetwork = availableWifi;
+        _connectedWifiPassword = _wifiDatabaze->getRecordCell(availableWifi.c_str(), "password");
+        WiFi.begin(availableWifi.c_str(), _connectedWifiPassword.c_str());
     }
     else
     {
         AP_always_on = true;
     }
     if(AP_always_on){
-        startAP(AP_ssid, AP_password);
+        _startAP(AP_ssid, AP_password);
     }
     
 };
@@ -32,7 +33,6 @@ wifiNetwork wifiNetworkManager::getConnectedWifiNetwork()
 {
     std::lock_guard<std::mutex> lock(_mutex__);
 
-    _connectedWifiNetwork = WiFi.SSID();
     return wifiNetwork{
         _connectedWifiNetwork, 
         WiFi.RSSI()
@@ -76,6 +76,7 @@ wifi_result_t wifiNetworkManager::changeWifi(String ssid, String password)
     WiFi.disconnect();
     if(WiFi.begin(ssid.c_str(), password.c_str())){
         _connectedWifiNetwork = ssid;
+        _connectedWifiPassword = password;
         std::vector<String> WifiConnectionDetails;
         WifiConnectionDetails.push_back(ssid);
         WifiConnectionDetails.push_back(password);
@@ -102,6 +103,7 @@ wifi_result_t wifiNetworkManager::changeWifi(String ssid)
         WiFi.disconnect();
         if(WiFi.begin(ssid.c_str(), WifiConnectionDetails[1].c_str()) == WL_CONNECTED){
             _connectedWifiNetwork = ssid;
+            _connectedWifiPassword = WifiConnectionDetails[1];
             return CONNECTED;
         }
         else
@@ -114,6 +116,59 @@ wifi_result_t wifiNetworkManager::changeWifi(String ssid)
     {
         return UNKNOW_WIFI;
     }
+};
+
+/**
+ * Start station
+ */
+void wifiNetworkManager::startStation(){
+    std::lock_guard<std::mutex> lock(_mutex__);
+
+    WiFi.begin(_connectedWifiNetwork.c_str(), _connectedWifiPassword.c_str());
+};
+
+/**
+ * Stop station
+ */
+void wifiNetworkManager::stopStation(){
+    std::lock_guard<std::mutex> lock(_mutex__);
+
+    WiFi.mode(WIFI_OFF);
+};
+
+
+/**
+ * Restart AP with ssid and password from parameters
+ * @param AP_ssid       ssid of AP
+ * @param AP_password   password of AP
+ */
+void wifiNetworkManager::restartAP(const char* AP_ssid, const char* AP_password)
+{
+    std::lock_guard<std::mutex> lock(_mutex__);
+
+    _wifiDatabaze->changeRecord(_AP_ssid.c_str(), std::vector<String>{AP_ssid, AP_password});
+    WiFi.softAPdisconnect(true);
+    _AP_ssid = AP_ssid;
+    _AP_password = AP_password;
+    WiFi.softAP(_AP_ssid.c_str(), _AP_password.c_str());
+};
+
+/**
+ * Stop AP
+ */
+void wifiNetworkManager::stopAP(){
+    std::lock_guard<std::mutex> lock(_mutex__);
+
+    WiFi.softAPdisconnect(true);
+};
+
+/**
+ * Start AP with ssid and password from object memory
+ */
+void wifiNetworkManager::startAP(){
+    std::lock_guard<std::mutex> lock(_mutex__);
+
+    WiFi.softAP(_AP_ssid.c_str(), _AP_password.c_str());
 };
 
 // private:  ********************************************************************************************************************   private:
@@ -148,7 +203,7 @@ String wifiNetworkManager::getAvailableWifiFromDatabaze()
  * @param AP_ssid       ssid of AP
  * @param AP_password   password of AP
  */
-void wifiNetworkManager::startAP(const char* AP_ssid, const char* AP_password)
+void wifiNetworkManager::_startAP(const char* AP_ssid, const char* AP_password)
 {
     std::vector<String> ssidName = _wifiDatabaze->getRecord(1);
     if(ssidName.size() > 0){

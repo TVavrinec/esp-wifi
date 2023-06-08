@@ -32,13 +32,6 @@ pageManager::~pageManager()
 }
 
 // private:
-cJSON pageManager::parsReport(char *json)
-{
-    cJSON parsJson = *cJSON_Parse(json);
-    taskYIELD();
-    return parsJson;
-}
-
 machineStates pageManager::translatePermission(String permission)
 {
     printf("test translatePermission\n");
@@ -91,7 +84,7 @@ void pageManager::processReport(uint8_t *json)
     static machineStates state = LOGIN;
     machineStates newState;
 
-    cJSON  pars_data = parsReport((char *)json);
+    cJSON pars_data = *cJSON_Parse((char *)json);
     
     switch (state)
     {

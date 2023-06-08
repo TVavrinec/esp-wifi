@@ -108,6 +108,26 @@ void csvDatabese::addRecord(std::vector<String> record) {
 }
 
 /*
+    * @brief Change record in database
+    * 
+    * @param name - name of record
+    * @param record - vector of cells
+*/
+void csvDatabese::changeRecord(const char *name, std::vector<String> record) {
+    std::lock_guard<std::mutex> lock(_mutex__);
+
+    String nameStr = String(name);
+    for (int i = 0; i < _data.size(); i++)
+    {
+        if (_data[i][0] == nameStr) {
+            _data[i] = record;
+            break;
+        }
+    }
+    writeData();
+}
+
+/*
     * @brief Delete record from database
     * 
     * @param name - name of record
