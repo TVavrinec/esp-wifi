@@ -10,7 +10,7 @@
 #include <vector>
 #include <string>
 
-#include <ArduinoJson.h>
+#include "cJSON.h"
 
 #include "csvDatabese.hpp"
 #include "wifiNetworkManager.hpp"
@@ -41,35 +41,42 @@ private:
     AsyncWebSocket *_ws;
     csvDatabese *_userDatabaze;
     wifiNetworkManager *_wifiManager;
-    std::vector<csvDatabese>  *_databazes;
+    std::vector<csvDatabese *>  *_databazes;
 
-    DynamicJsonDocument parsReport(char *json);
+    cJSON parsReport(char *json);
 
     machineStates translatePermission(String permission);
 
-    machineStates loginProcess(DynamicJsonDocument& json);
-    machineStates workerProcess(DynamicJsonDocument& json);
-    machineStates adminProcess(DynamicJsonDocument& json);
-    machineStates calibratorProcess(DynamicJsonDocument& json);
-
-    String getPacketPart(DynamicJsonDocument& json, String partName);
-
+    String getPacketPart(cJSON & json, String partName);
+    
     void serveStaticFiles(const char *path);
 
     void processReport(uint8_t *data);
     
-    // void signinEvent(DynamicJsonDocument& json);
-    void wifiEvent(DynamicJsonDocument& json);
-
-    void pushLoginPage(DynamicJsonDocument& json);
-    void pushWorkerPage(DynamicJsonDocument& json);
-    void pushAdminPage(DynamicJsonDocument& json);
-    void pushCalibratorPage(DynamicJsonDocument& json);
-
-
     static void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
 
+    // Login
+    machineStates loginProcess(cJSON & json);
+    void pushLoginPage();
+
+    // Calibrator
+    machineStates calibratorProcess(cJSON & json);
+    void pushCalibratorPage();
+
+    // Worker
+    machineStates workerProcess(cJSON & json);
+    void pushWorkerPage();
+
+    // Admin
+    machineStates adminProcess(cJSON & json);
+    void wifiEvent(cJSON & json);
+    void pushAdminPage();
+
+    void sendWifiList();
+    
+    // void signinEvent(cJSON & json);
+
 public:
-    pageManager(wifiNetworkManager *wifiManager, csvDatabese *userDatabaze, std::vector<csvDatabese> *databaze);
+    pageManager(wifiNetworkManager *wifiManager, csvDatabese *userDatabaze, std::vector<csvDatabese *> *databaze);
     ~pageManager();
 };

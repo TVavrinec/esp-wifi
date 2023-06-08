@@ -6,6 +6,7 @@ wifiNetworkManager::wifiNetworkManager(csvDatabese *wifiDatabaze, bool AP_always
     String availableWifi = getAvailableWifiFromDatabaze();
     if(availableWifi != ""){
         WiFi.begin(availableWifi.c_str(), _wifiDatabaze->getRecordCell(availableWifi.c_str(), "password").c_str());
+        _connectedWifiNetwork = availableWifi;
     }
     else
     {
@@ -24,16 +25,40 @@ wifiNetworkManager::~wifiNetworkManager()
 // public:  ********************************************************************************************************************   public:
 
 /**
+ * Get actual wifi network
+ * @return wifiNetwork with actual wifi network
+*/
+wifiNetwork wifiNetworkManager::getConnectedWifiNetwork()
+{
+    std::lock_guard<std::mutex> lock(_mutex__);
+
+    _connectedWifiNetwork = WiFi.SSID();
+    return wifiNetwork{
+        _connectedWifiNetwork, 
+        WiFi.RSSI()
+    };
+};
+
+/**
  * Search for available WiFi networks
  * @param show_hidden   show hidden networks
  * @return list of discovered networks
  */
-std::vector<String> wifiNetworkManager::getAvailableWifiList()
+std::vector<wifiNetwork> wifiNetworkManager::getAvailableWifiList()
 {
+    std::lock_guard<std::mutex> lock(_mutex__);
+    
     int numNetworks = WiFi.scanNetworks();
-    std::vector<String> availableWifiList;
+    std::vector<wifiNetwork> availableWifiList;
     for(int i = 0; i < numNetworks; i++){
-        availableWifiList.push_back(WiFi.SSID(i));
+        String nextWifi = WiFi.SSID(i);
+        if(_connectedWifiNetwork != nextWifi){
+            availableWifiList.push_back(wifiNetwork{
+                nextWifi, 
+                WiFi.RSSI(i)
+            });
+        }
+        taskYIELD();
     }
     return availableWifiList;
 };
@@ -46,14 +71,19 @@ std::vector<String> wifiNetworkManager::getAvailableWifiList()
  */
 wifi_result_t wifiNetworkManager::changeWifi(String ssid, String password)
 {
-    WiFi.disconnect();
-    WiFi.begin(ssid.c_str(), password.c_str());
-    std::vector<String> WifiConnectionDetails;
-    WifiConnectionDetails.push_back(ssid);
-    WifiConnectionDetails.push_back(password);
-    _wifiDatabaze->addRecord(WifiConnectionDetails);
+    std::lock_guard<std::mutex> lock(_mutex__);
 
-    return CONNECTED;
+    WiFi.disconnect();
+    if(WiFi.begin(ssid.c_str(), password.c_str())){
+        _connectedWifiNetwork = ssid;
+        std::vector<String> WifiConnectionDetails;
+        WifiConnectionDetails.push_back(ssid);
+        WifiConnectionDetails.push_back(password);
+        _wifiDatabaze->addRecord(WifiConnectionDetails);
+
+        return CONNECTED;
+    }
+    return NO_WIFI;
 };
 
 /**
@@ -63,12 +93,15 @@ wifi_result_t wifiNetworkManager::changeWifi(String ssid, String password)
 */
 wifi_result_t wifiNetworkManager::changeWifi(String ssid)
 {    
+    std::lock_guard<std::mutex> lock(_mutex__);
+
     std::vector<String> WifiConnectionDetails = _wifiDatabaze->getRecord(ssid.c_str());
     if(WifiConnectionDetails.size() > 1){
         String oldSsid = WiFi.SSID();
         String oldPassword = WiFi.psk();
         WiFi.disconnect();
         if(WiFi.begin(ssid.c_str(), WifiConnectionDetails[1].c_str()) == WL_CONNECTED){
+            _connectedWifiNetwork = ssid;
             return CONNECTED;
         }
         else
@@ -94,14 +127,14 @@ String wifiNetworkManager::getAvailableWifiFromDatabaze()
     std::vector<String> wifisFromDatabaze = _wifiDatabaze->getRecordsName();
     wifisFromDatabaze.erase(wifisFromDatabaze.begin()); // delete first element, because it is header
     wifisFromDatabaze.erase(wifisFromDatabaze.begin()); // delete second element, because it is AP wifi
-    std::vector<String> availableWifiList = getAvailableWifiList();
+    std::vector<wifiNetwork> availableWifiList = getAvailableWifiList();
     if((wifisFromDatabaze.size() == 0)||(availableWifiList.size() == 0)){
         printf("Error: no WiFi available\n");
         return "";
     }
     for(int i = 0; i < wifisFromDatabaze.size(); i++){
         for(int j = 0; j < availableWifiList.size(); j++){
-            if(wifisFromDatabaze.at(i) == availableWifiList.at(j)){
+            if(wifisFromDatabaze.at(i) == availableWifiList.at(j).ssid){
                 return wifisFromDatabaze.at(i);
             }
         }

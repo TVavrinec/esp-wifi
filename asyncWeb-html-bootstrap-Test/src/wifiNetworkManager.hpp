@@ -14,6 +14,11 @@ typedef enum {
     UNKNOW_PACKET
 } wifi_result_t;
 
+struct wifiNetwork{
+    String ssid;
+    int rssi;
+};
+
 /*
 * This class is used to manage wifi network.
 * It can work with csvDatabaze class and automatically create AP if there is no wifi network.
@@ -32,6 +37,10 @@ typedef enum {
 class wifiNetworkManager
 {
 private:
+    std::mutex _mutex__;
+
+    String _AP_ssid;
+    String _connectedWifiNetwork;
     csvDatabese *_wifiDatabaze;
     String getAvailableWifiFromDatabaze();
 
@@ -41,7 +50,8 @@ public:
     wifi_result_t changeWifi(String ssid, String password);
     wifi_result_t changeWifi(String ssid);
     
-    std::vector<String> getAvailableWifiList();
+    wifiNetwork getConnectedWifiNetwork();
+    std::vector<wifiNetwork> getAvailableWifiList();
 
     wifiNetworkManager(csvDatabese *wifiDatabaze, bool AP_always_on = true, const char* AP_ssid = "Exactis-SMC", const char* AP_password = "12345678");
     ~wifiNetworkManager();

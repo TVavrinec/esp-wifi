@@ -1,6 +1,0 @@
-{
-    "files.associations": {
-        "esp_vfs.h": "c",
-        "littlefs_api.h": "c"
-    }
-}

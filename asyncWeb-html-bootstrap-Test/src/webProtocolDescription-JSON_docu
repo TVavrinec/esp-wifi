@@ -1,6 +1,41 @@
+// general ************************************************************************************************************************************************************************************
+/** TO DO
+ * general action
+ * get device info
+*/
+{
+    "type": "general",
+    "get": "device_info"
+}
+// Server Response
+{
+    "type": "general",
+    "deviceInfo": {
+        "deviceName": "ESP32",
+        "deviceType": "ESP32",
+        "deviceVersion": "1.0.0",
+        "deviceID": "1234567890",
+        "deviceIP": IP,
+    }
+}
+
+/** TO DO
+ * general action
+ * get device status
+*/
+{
+    "type": "general",
+    "get": "admin" // or other user
+}
+// Server Response
+/**
+* messages of other types
+*/
+
+
 
 // wifi actions ************************************************************************************************************************************************************************************
-// wifi station
+// wifi station ------------------------------------------------------------------------
 
 /**
  * wifi action
@@ -19,12 +54,12 @@
         "wifiList": [
             {
                 "ssid": "wifi",
-                "signal": 100, // 0-100
+                "rssi": 0, // -100 - 0 dbm
                 "state": "connected"
             },
             {
                 "ssid": "wifi2",
-                "signal": 50,
+                "rssi": -50,
                 "state": "not_connected"
             }
         ]
@@ -88,7 +123,7 @@
     }
 }
 
-// wifi access point
+// wifi access point -------------------------------------------------------------------
 /**
  * wifi action
  * turn on/off access point

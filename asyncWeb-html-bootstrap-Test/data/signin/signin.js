@@ -10,6 +10,7 @@ ws.addEventListener('message', (event) => {
 
     if (data.type === 'login') {
         if (data.user) {
+            ws.close();
             // Go to desired page
             window.location.href = '/'+data.user+'.html';
         } else {

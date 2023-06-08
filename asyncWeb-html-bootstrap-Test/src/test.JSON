@@ -1,0 +1,59 @@
+[
+    {
+        "type": "wifi",
+        "station": {
+            "wifiList": [
+                {
+                    "ssid": "Vodafone-AEA0",
+                    "rssi": -73,
+                    "state": "connected"
+                },
+                {
+                    "ssid": "TP-Link_66EE",
+                    "rssi": -67,
+                    "state": "not connected"
+                },
+                {
+                    "ssid": "UPC3246039",
+                    "rssi": -73,
+                    "state": "not connected"
+                },
+                {
+                    "ssid": "UPC862FCD1",
+                    "rssi": -80,
+                    "state": "not connected"
+                },
+                {
+                    "ssid": "holkymoje",
+                    "rssi": -80,
+                    "state": "not connected"
+                },
+                {
+                    "ssid": "TP-Link_AC91",
+                    "rssi": -81,
+                    "state": "not connected"
+                },
+                {
+                    "ssid": "UPC887508",
+                    "rssi": -86,
+                    "state": "not connected"
+                },
+                {
+                    "ssid": "Lamicka-31DC",
+                    "rssi": -89,
+                    "state": "not connected"
+                },
+                {
+                    "ssid": "UPC8AD39C2",
+                    "rssi": -91,
+                    "state": "not connected"
+                },
+                {
+                    "ssid": "Vodafone-20BA",
+                    "rssi": -93,
+                    "state": "not connected"
+                }
+            ]
+        }
+    }
+]

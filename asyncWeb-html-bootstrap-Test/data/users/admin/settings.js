@@ -3,29 +3,28 @@ var jsonWiFiData = '[{"ssid": "WiFi1", "signal": 80, "state": "connected"}, {"ss
 // WebSockets client
 const ws = new WebSocket('ws://' + location.hostname + '/ws');
 
-// Parsování JSON dat
-var wifiData = JSON.parse(jsonWiFiData);
-
-// Vytvoření seznamu WiFi připojení
-var wifiList = document.getElementById('wifiList');
-wifiData.forEach(function(item) {
-  var listItem = document.createElement('li');
-  if (item.state === 'connected') {
-    listItem.className = 'list-group-item list-group-item-action active';
-  }
-  else{
-    listItem.className = 'list-group-item list-group-item-action';
-  }
-  // var wifiIcon = document.createElement('i');
-  // wifiIcon.className = 'fas fa-wifi';
-  // listItem.appendChild(wifiIcon);
-  listItem.innerHTML = '<img src="wifi-high-svgrepo-com.svg" class="ikonka"></img>' + item.ssid;
-  listItem.id = item.ssid;
-  listItem.onclick = function() {
-    wifiAction(this);
-  };
-  wifiList.appendChild(listItem);
-});
+function showWifiList(jsonWiFiData){
+  // var wifiData = JSON.parse(jsonWiFiData);
+  var wifiList = document.getElementById('wifiList');
+  jsonWiFiData.forEach(function(item) {
+    var listItem = document.createElement('li');
+    if (item.state === 'connected') {
+      listItem.className = 'list-group-item list-group-item-action active';
+    }
+    else{
+      listItem.className = 'list-group-item list-group-item-action';
+    }
+    // var wifiIcon = document.createElement('i');
+    // wifiIcon.className = 'fas fa-wifi';
+    // listItem.appendChild(wifiIcon);
+    listItem.innerHTML = '<img src="wifi-high-svgrepo-com.svg" class="ikonka"></img>' + item.ssid;
+    listItem.id = item.ssid;
+    listItem.onclick = function() {
+      wifiAction(this);
+    };
+    wifiList.appendChild(listItem);
+  });
+}
 
 function wifiPasswordButton(){
   const password = document.getElementById('password').value;
@@ -76,9 +75,6 @@ function apSetButton(){
 }
 
 function apOnButton(){
-  document.getElementById('apOnButton').style.backgroundColor = '#0000ff';
-  document.getElementById('apOffButton').style.backgroundColor = '#8888ff';
-
   ws.send(JSON.stringify({ 
     type: 'wifi', 
     ap: {
@@ -86,10 +82,7 @@ function apOnButton(){
     }}));
 }
 
-function apOffButton(){
-  document.getElementById('apOnButton').style.backgroundColor = '#8888ff';
-  document.getElementById('apOffButton').style.backgroundColor = '#0000ff';
-  
+function apOffButton(){  
   ws.send(JSON.stringify({ 
     type: 'wifi', 
     ap: {
@@ -97,7 +90,45 @@ function apOffButton(){
     }}));
 }
 
-// incoming wifi message from server
+// incoming wifi message from server **********************************************************************************************************************
+
+function setWifiList(wifiList){
+  let index = wifiList.findIndex(wifiList => wifiList.state === 'state');
+
+  if (index !== -1) {
+    let part = wifiList.splice(index, 1)[0];
+    wifiList.unshift(part);
+  }
+
+  wifiData = JSON.parse(wifiList);
+}
+
+function stationMessage(message){
+  if('wifiList' in message){
+    console.log(message.wifiList);
+    showWifiList(message.wifiList);
+  }
+  else if ('on' in message){
+    
+  }
+  else if ('connect' in message){
+    if(message.connect === 'unknown wifi'){
+      madeWifiPaswordWindow();
+    }
+    else if(message.connect === 'not available'){
+      console.log('WiFi not available');
+    }
+    else if(message.connect === 'connected'){
+
+    }
+    else{
+      console.log('Unknown "connect" message');
+    }
+  }
+  else{
+    console.log('Unknown message');
+  }
+}
 
 function apMessage(message){
   if ('on' in message){
@@ -110,8 +141,13 @@ function apMessage(message){
       document.getElementById('apOffButton').style.backgroundColor = '#0000ff';
     }
   }
-  else if ('ssid' in message){
-
+  else if ('set' in message){
+    if (message.set){
+      document.getElementById('apSetButton').style.backgroundColor = '#0000ff';
+    }
+    else{
+      document.getElementById('apSetButton').style.backgroundColor = '#ff0000';
+    }
   }
   else{
     console.log('Unknown message');
@@ -120,7 +156,6 @@ function apMessage(message){
 
 function wifiMessage(message){
   if ('station' in message){
-
   }
   else if ('ap' in message){
     apMessage(message.ap);
@@ -131,8 +166,27 @@ function wifiMessage(message){
 
 }
 
+function solverWifiMessage(message){
+  if ('station' in message){
+    stationMessage(message.station);
+  }
+  else if ('ap' in message){
+    console.log('Unknown message');
+  }
+  else{
+    console.log('Unknown message');
+  }
+}
+
+
+// WebSocket event handlers *********************************************************************************************************************
+
 ws.addEventListener('open', () => {
   console.log('WebSocket connection established');
+  ws.send(JSON.stringify({ 
+    type: 'general', 
+    get: 'admin' 
+  }));
 });
 
 ws.addEventListener('message', (event) => {
@@ -141,6 +195,7 @@ ws.addEventListener('message', (event) => {
   switch (data.type) {
     case 'wifi':
       console.log('WiFi connection status: ' + data.status);
+      solverWifiMessage(data);
       break;
     case 'apOn':
       console.log('AP status: ' + data.status);
@@ -151,6 +206,8 @@ ws.addEventListener('message', (event) => {
       console.log('Unknown message type');
   }
 });
+
+// Form event handlers *********************************************************************************************************************
 
 document.querySelector('form').addEventListener('submit', (event) => {
 // event.preventDefault();

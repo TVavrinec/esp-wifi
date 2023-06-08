@@ -2,7 +2,7 @@
 
 pageManager *pageManager::_instance = nullptr;
 
-pageManager::pageManager(wifiNetworkManager *wifiManager, csvDatabese *userDatabaze, std::vector<csvDatabese>  *databazes)
+pageManager::pageManager(wifiNetworkManager *wifiManager, csvDatabese *userDatabaze, std::vector<csvDatabese *>  *databazes)
 {
     _wifiManager = wifiManager;
     _userDatabaze = userDatabaze;
@@ -24,6 +24,7 @@ pageManager::pageManager(wifiNetworkManager *wifiManager, csvDatabese *userDatab
                         { request->send(404, "text/plain", "Not found"); });
 
     _server->begin();
+    taskYIELD();
 }
 
 pageManager::~pageManager()
@@ -31,13 +32,10 @@ pageManager::~pageManager()
 }
 
 // private:
-DynamicJsonDocument pageManager::parsReport(char *json)
+cJSON pageManager::parsReport(char *json)
 {
-    DynamicJsonDocument parsJson(1024);
-
-    if(deserializeJson(parsJson, json)){
-        printf("ERROR: Failed to deserialize json\n");
-    }
+    cJSON parsJson = *cJSON_Parse(json);
+    taskYIELD();
     return parsJson;
 }
 
@@ -65,112 +63,27 @@ machineStates pageManager::translatePermission(String permission)
         printf("LOGIN\n");
         return LOGIN;
     }
+    taskYIELD();
 }
 
-machineStates pageManager::loginProcess(DynamicJsonDocument& json)
+machineStates pageManager::loginProcess(cJSON& json)
 {
-    if (json["username"])
+    if(cJSON_GetObjectItem(&json, "username")->valuestring != NULL)
     {
-        String uerPermission = _userDatabaze->getRecordCell(json["username"], "permission");
+        String uerPermission = _userDatabaze->getRecordCell(cJSON_GetObjectItem(&json, "username")->valuestring, "permission");
         if (uerPermission != "")
         {
             return translatePermission(uerPermission);
         }
     }
+    taskYIELD();
     return LOGIN;
 }
 
-machineStates pageManager::workerProcess(DynamicJsonDocument& json)
-{
-
-    return WORKER;
-}
-
-machineStates pageManager::adminProcess(DynamicJsonDocument& json)
-{
-    if(json["type"] == "wifi")
-    {
-        wifiEvent(json);
-    }
-    else
-    {
-        printf("Wrong: Unknown packet type\n");
-    }
-    
-    return ADMIN;
-}
-
-machineStates pageManager::calibratorProcess(DynamicJsonDocument& json)
-{
-
-    return CALIBRATOR;
-}
-
-void pageManager::pushLoginPage(DynamicJsonDocument& json)
+void pageManager::pushLoginPage()
 {
     printf("pushLoginPage\n");
-}
-
-void pageManager::pushWorkerPage(DynamicJsonDocument& json)
-{
-    serveStaticFiles("/users/worker/");
-    serveStaticFiles("/web/");
-    _ws->textAll("{\"type\":\"login\",\"user\":\"worker\"}");
-}
-
-void pageManager::pushAdminPage(DynamicJsonDocument& json)
-{
-    serveStaticFiles("/users/admin/");
-    serveStaticFiles("/web/");
-    _ws->textAll("{\"type\":\"login\",\"user\":\"admin\"}");
-}
-
-void pageManager::pushCalibratorPage(DynamicJsonDocument& json)
-{
-    serveStaticFiles("/users/calibrator/");
-    serveStaticFiles("/web/");
-    _ws->textAll("{\"type\":\"login\",\"user\":\"calibrator\"}");
-}
-
-/**
- * @brief get wifi packet from websocket and process it
-*/
-void pageManager::wifiEvent(DynamicJsonDocument& json)
-{
-    String apAction = json["ap"];
-    if(json["ap"].is<const char*>()){
-        if(apAction == "apOff"){
-            // _wifiManager->startAP();
-        }
-        else if(apAction == "apOff"){
-            // _wifiManager->stopAP();
-        }
-        // else if(apAction == "restart"){
-        //     _wifiManager->restartAP();
-        // }
-        // else if(apAction == "change"){
-        //     String ssid = getPacketPart(data, "ssid");
-        //     String password = getPacketPart(data, "password");
-        //     _wifiManager->changeWifi(ssid, password);
-        // }
-    }
-
-    // String wifi[2] = {"", ""};
-    // for (int a = 0; a < data->members[0].size(); a++)
-    // {
-    //     if (data->members[0][a] == "ssid")
-    //     {
-    //         wifi[0] = data->members[1][a];
-    //     }
-    //     else if (data->members[0][a] == "password")
-    //     {
-    //         wifi[1] = data->members[1][a];
-    //     }
-    // }
-    // if (wifi[0] == "" || wifi[1] == "")
-    // {
-    //     _wifiManager->changeWifi(wifi[0], wifi[1]);
-    // } 
+    taskYIELD();
 }
 
 void pageManager::processReport(uint8_t *json)
@@ -178,7 +91,7 @@ void pageManager::processReport(uint8_t *json)
     static machineStates state = LOGIN;
     machineStates newState;
 
-    DynamicJsonDocument pars_data = parsReport((char *)json);
+    cJSON  pars_data = parsReport((char *)json);
     
     switch (state)
     {
@@ -202,22 +115,23 @@ void pageManager::processReport(uint8_t *json)
         {
         case LOGIN:
             printf("go to LOGIN\n");
-            pushLoginPage(pars_data);
+            pushLoginPage();
             break;
         case WORKER:
             printf("go to WORKER\n");
-            pushWorkerPage(pars_data);
+            pushWorkerPage();
             break;
         case ADMIN:
             printf("go to ADMIN\n");
-            pushAdminPage(pars_data);
+            pushAdminPage();
             break;
         case CALIBRATOR:
             printf("go to CALIBRATOR\n");
-            pushCalibratorPage(pars_data);
+            pushCalibratorPage();
             break;
         }
     }
+    taskYIELD();
 }
 
 void pageManager::serveStaticFiles(const char *path)
@@ -238,6 +152,7 @@ void pageManager::serveStaticFiles(const char *path)
             file = root.openNextFile();
         }
     }
+    taskYIELD();
 }
 
 void pageManager::onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
@@ -255,4 +170,5 @@ void pageManager::onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client
     {
         _instance->processReport(data);
     }
+    taskYIELD();
 }

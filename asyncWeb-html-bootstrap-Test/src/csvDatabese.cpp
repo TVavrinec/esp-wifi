@@ -31,6 +31,8 @@ csvDatabese::csvDatabese(const char *filename) {
     * @return String - cell
 */
 String csvDatabese::getRecordCell(const char *name, const char *columnName) {
+    std::lock_guard<std::mutex> lock(_mutex__);
+    
     int cellNubmer = -1;
     for (int i = 0; i < _data[0].size(); i++)
     {
@@ -61,6 +63,8 @@ String csvDatabese::getRecordCell(const char *name, const char *columnName) {
     * @return std::vector<String> - vector of records name
 */
 std::vector<String> csvDatabese::getRecordsName() {
+    std::lock_guard<std::mutex> lock(_mutex__);
+
     std::vector<String> recordsName;
     for (int i = 0; i < _data.size(); i++)
     {
@@ -73,6 +77,8 @@ std::vector<String> csvDatabese::getRecordsName() {
     * @brief Print database
 */
 void csvDatabese::printDatabase() {
+    std::lock_guard<std::mutex> lock(_mutex__);
+
     for (int i = 0; i < _data.size(); i++)
     {
         for (int j = 0; j < _data[i].size(); j++)
@@ -89,6 +95,8 @@ void csvDatabese::printDatabase() {
     * @param record - vector of cells
 */
 void csvDatabese::addRecord(std::vector<String> record) {
+    std::lock_guard<std::mutex> lock(_mutex__);
+
     for (int a = 0; a < _data.size(); a++)
     {
         if (_data[a][0] == record[0]) {
@@ -105,6 +113,8 @@ void csvDatabese::addRecord(std::vector<String> record) {
     * @param name - name of record
 */
 void csvDatabese::deleteRecord(const char *name) {
+    std::lock_guard<std::mutex> lock(_mutex__);
+
     String nameStr = String(name);
     for (int i = 0; i < _data.size(); i++)
     {
@@ -123,6 +133,8 @@ void csvDatabese::deleteRecord(const char *name) {
     * @return std::vector<String> - vector of cells
 */
 std::vector<String> csvDatabese::getRecord(const char *name) {
+    std::lock_guard<std::mutex> lock(_mutex__);
+
     String nameStr = String(name);
     for (int i = 0; i < _data.size(); i++)
     {
@@ -141,6 +153,8 @@ std::vector<String> csvDatabese::getRecord(const char *name) {
  * @return std::vector<String> - vector of cells
 */
 std::vector<String> csvDatabese::getRecord(int number) {
+    std::lock_guard<std::mutex> lock(_mutex__);
+
     if (number < 0 || number >= _data.size()) {
         Serial.printf("Warning: Wrong number %d, in csvDatabaze.cpp on %d line\n", number, __LINE__);
         return std::vector<String>();
