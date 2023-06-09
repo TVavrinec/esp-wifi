@@ -1,4 +1,4 @@
-username,   password,   permission
-worker,     heslo,      WORKER
-admin,      heslo,      ADMIN
-calibrator, heslo,      CALIBRATOR
+username,password,permission
+worker,heslo,WORKER
+admin,heslo,ADMIN
+calibrator,heslo,CALIBRATOR

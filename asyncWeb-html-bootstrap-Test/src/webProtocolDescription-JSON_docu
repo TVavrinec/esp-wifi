@@ -87,7 +87,7 @@
 
 /**
  * wifi action
- * connect to wifi with ssid and password from database
+ * connect to wifi with password from database
 */
 {
     "type": "wifi",

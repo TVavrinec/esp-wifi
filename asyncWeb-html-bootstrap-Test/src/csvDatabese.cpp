@@ -17,6 +17,7 @@ csvDatabese::csvDatabese(const char *filename) {
 
     String line;
     // Read data
+    _data = std::vector<std::vector<String>>();
     while (file.available()) {
         line = file.readStringUntil('\n');
         _data.push_back(parsLine(line));
@@ -193,7 +194,7 @@ std::vector<String> csvDatabese::getRecord(int number) {
 std::vector<String> csvDatabese::parsLine(String line) {
     std::vector<String> data_line;
     line.trim();
-    line.replace(" ", "");
+    // line.replace(" ", "");
     int cellEnd = line.indexOf(',');
     int lastCellEnd = 0;
     if (cellEnd == -1)

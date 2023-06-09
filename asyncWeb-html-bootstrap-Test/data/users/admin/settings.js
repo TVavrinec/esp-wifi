@@ -1,4 +1,4 @@
-var jsonWiFiData = '[{"ssid": "WiFi1", "signal": 80, "state": "connected"}, {"ssid": "WiFi2", "signal": 90, "state": "avalable"}, {"ssid": "WiFi3", "signal": 70, "state": "avalable"}, {"ssid": "WiFi4", "signal": 60, "state": "avalable"}, {"ssid": "WiFi5", "signal": 50, "state": "avalable"}, {"ssid": "WiFi6", "signal": 40, "state": "avalable"}, {"ssid": "WiFi7", "signal": 30, "state": "avalable"}, {"ssid": "WiFi8", "signal": 20, "state": "avalable"}, {"ssid": "WiFi9", "signal": 10, "state": "avalable"}]';
+var lastconnectedWifiSsid = "";
 
 // WebSockets client
 const ws = new WebSocket('ws://' + location.hostname + '/ws');
@@ -6,6 +6,7 @@ const ws = new WebSocket('ws://' + location.hostname + '/ws');
 function showWifiList(jsonWiFiData){
   // var wifiData = JSON.parse(jsonWiFiData);
   var wifiList = document.getElementById('wifiList');
+  wifiList.innerHTML = '';
   jsonWiFiData.forEach(function(item) {
     var listItem = document.createElement('li');
     if (item.state === 'connected') {
@@ -32,7 +33,7 @@ function wifiPasswordButton(){
   // Send login data via WebSocket
   ws.send(JSON.stringify({ 
     type: 'wifi', 
-    connect: {
+    station: {
       ssid, 
       password
     }}));
@@ -41,10 +42,11 @@ function wifiPasswordButton(){
 
 function wifiAction(element){
   console.log("I wont connect to: " + element.id);
-  const ssid = document.getElementById('wifiName').innerText;
+  const ssid = element.id;
+  lastconnectedWifiSsid = ssid;
   ws.send(JSON.stringify({ 
     type: 'wifi', 
-    connect: {
+    station: {
       ssid
     }
   }));
@@ -58,7 +60,7 @@ function madeWifiPaswordWindow(){
   $('#wifiPasswordWin').modal('show');
   $('#wifiPasswordWin').on('shown.bs.modal', function () {
     var modalText = $(this).find('.wifiName p');
-    modalText.text(element.id);
+    modalText.text(lastconnectedWifiSsid);
   });
 }
 
@@ -124,19 +126,19 @@ function stationMessage(message){
   else if ('on' in message){
     
   }
-  else if ('connect' in message){
-    if(message.connect === 'unknown wifi'){
+  else if ('connected' in message){
+    if(message.connected === 'unknown wifi'){
       madeWifiPaswordWindow();
     }
-    else if(message.connect === 'not available'){
+    else if(message.connected === 'not available'){
       console.log('WiFi not available');
       wifiListRegest();
     }
-    else if(message.connect === 'connected'){
+    else if(message.connected === 'connected'){
       wifiListRegest();
     }
     else{
-      console.log('Unknown "connect" message');
+      console.log('Unknown "station" message');
     }
   }
   else{

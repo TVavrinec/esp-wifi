@@ -40,12 +40,12 @@ void pageManager::wifiEvent(cJSON &json)
     cJSON *station = cJSON_GetObjectItem(&json, "station");
     if (ap != NULL)
     {
-        apEvent(json);
+        apEvent(*ap);
         return;
     }
     else if(station != NULL)
     {
-        stationEvent(json);
+        stationEvent(*station);
         return;
     }
     else
@@ -97,10 +97,12 @@ void pageManager::stationEvent(cJSON &json){
     }
     else if (on != NULL)
     {
+        printf("on: %d\n", on->valueint);
         stationOnEvent(json);
     }
     else if (ssid != NULL)
     {
+        printf("ssid: %s\n", ssid->valuestring);
         stationSsidEvent(json);
     }
     else
@@ -148,10 +150,31 @@ void pageManager::stationOnEvent(cJSON &json){
 void pageManager::stationSsidEvent(cJSON &json){
     String ssid = cJSON_GetObjectItem(&json, "ssid")->valuestring;
     cJSON *password = cJSON_GetObjectItem(&json, "password");
-    if(password == NULL)
-        _wifiManager->changeWifi(ssid);
-    else
-        _wifiManager->changeWifi(ssid, password->valuestring);
+    if(password == NULL){
+        wifi_result_t connectState = _wifiManager->changeWifi(ssid);
+        String connectMessage; 
+        switch (connectState)
+        {
+            case CONNECTED:
+                connectMessage = "connect";
+                break;
+            case UNKNOW_WIFI:
+                connectMessage = "unknown wifi";
+                break;
+            case NO_WIFI:
+                connectMessage = "not available";
+                break;
+            default:
+                printf("Error: unknow wifi connectState in pageManagerAdmin.cpp file on %s line\n", __LINE__);
+                break;
+        }
+        _ws->textAll("{\"type\":\"wifi\",\"station\":{\"connected\":\"" + connectMessage + "\"}}");
+    }
+    else{
+        if(_wifiManager->changeWifi(ssid, password->valuestring) != CONNECTED){
+            _ws->textAll("{\"type\":\"wifi\",\"station\":{\"connected\":\"not available\"}}");
+        }
+    }
     taskYIELD();
 }
 

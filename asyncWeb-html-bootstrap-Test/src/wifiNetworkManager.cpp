@@ -7,7 +7,8 @@ wifiNetworkManager::wifiNetworkManager(csvDatabese *wifiDatabaze, bool AP_always
     if(availableWifi != ""){
         _connectedWifiNetwork = availableWifi;
         _connectedWifiPassword = _wifiDatabaze->getRecordCell(availableWifi.c_str(), "password");
-        WiFi.begin(availableWifi.c_str(), _connectedWifiPassword.c_str());
+        printf("wifi %s %s conect\n", availableWifi.c_str(), WiFi.begin(availableWifi.c_str(), _connectedWifiPassword.c_str()) ? "is" : "is not");
+        printf("IP address: %s\n", WiFi.localIP().toString().c_str());
     }
     else
     {
