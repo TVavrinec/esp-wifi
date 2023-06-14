@@ -84,9 +84,9 @@ void csvDatabese::printDatabase() {
     {
         for (int j = 0; j < _data[i].size(); j++)
         {
-            Serial.printf("%20.20s |",_data[i][j].c_str());
+            printf("%20.20s |",_data[i][j].c_str());
         }
-        Serial.printf("\n");
+        printf("\n");
     }
 }
 

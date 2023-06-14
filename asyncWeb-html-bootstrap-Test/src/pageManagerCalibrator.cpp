@@ -1,6 +1,6 @@
 #include "pageManager.hpp"
 
-machineStates pageManager::calibratorProcess(cJSON& json)
+user_permission pageManager::calibratorProcess(cJSON& json)
 {
 
     return CALIBRATOR;

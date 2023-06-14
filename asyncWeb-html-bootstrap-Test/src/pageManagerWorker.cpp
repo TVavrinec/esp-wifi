@@ -1,6 +1,6 @@
 #include "pageManager.hpp"
 
-machineStates pageManager::workerProcess(cJSON& json)
+user_permission pageManager::workerProcess(cJSON& json)
 {
 
     return WORKER;

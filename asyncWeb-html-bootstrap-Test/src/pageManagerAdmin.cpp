@@ -1,6 +1,6 @@
 #include "pageManager.hpp"
 
-machineStates pageManager::adminProcess(cJSON &json)
+user_permission pageManager::adminProcess(cJSON &json)
 {
     String type = cJSON_GetObjectItem(&json, "type")->valuestring;
     if (type == "wifi")
@@ -25,9 +25,10 @@ machineStates pageManager::adminProcess(cJSON &json)
  */
 void pageManager::pushAdminPage()
 {
-    serveStaticFiles("/users/admin/");
-    serveStaticFiles("/web/");
-    _ws->textAll("{\"type\":\"login\",\"user\":\"admin\"}");
+    servFileWithPermission("/users/admin", "/admin.html", "text/html", ADMIN);
+    servFileWithPermission("/users/admin", "/adminScript.js", "application/javascript", ADMIN);
+    servFileWithPermission("/users/admin", "/settings.js", "application/javascript", ADMIN);
+    servFileWithPermission("/users/admin", "/wifi-high-svgrepo-com.svg", "image/svg+xml", ADMIN);
     taskYIELD();
 }
 

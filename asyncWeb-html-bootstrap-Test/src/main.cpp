@@ -36,14 +36,13 @@ IPAddress subnet(255, 255, 0, 0);
 
 
 void setup(){
-  printf("Start\n");
   csvDatabese userList("/users.csv");
   csvDatabese wifiList("/wifi_network.csv");
-  printf("Start printing\n");
+  printf("\nprint user list\n");
   userList.printDatabase();
-  printf("\n");
+  printf("\n print wifi list\n");
   wifiList.printDatabase();
-  printf("\nEnd printing\n");
+  printf("\n");
 
   // if(!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED)){
   //   Serial.println("LittleFS Mount Failed");
