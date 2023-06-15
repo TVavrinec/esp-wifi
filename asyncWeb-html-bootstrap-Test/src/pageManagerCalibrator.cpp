@@ -1,9 +1,8 @@
 #include "pageManager.hpp"
 
-user_permission pageManager::calibratorProcess(cJSON& json)
+void pageManager::calibratorProcess(cJSON& json)
 {
 
-    return CALIBRATOR;
 }
 
 void pageManager::pushCalibratorPage()

@@ -1,37 +1,5 @@
 #include "pageManager.hpp"
 
-user_permission pageManager::adminProcess(cJSON &json)
-{
-    String type = cJSON_GetObjectItem(&json, "type")->valuestring;
-    if (type == "wifi")
-    {
-        wifiEvent(json);
-    }
-    else if (type == "general")
-    {
-        printf("general\n");
-        sendWifiList();
-    }
-    else
-    {
-        printf("Wrong: Unknown packet type\n");
-    }
-    taskYIELD();
-    return ADMIN;
-}
-
-/**
- * @brief push admin page to all clients
- */
-void pageManager::pushAdminPage()
-{
-    servFileWithPermission("/users/admin", "/admin.html", "text/html", ADMIN);
-    servFileWithPermission("/users/admin", "/adminScript.js", "application/javascript", ADMIN);
-    servFileWithPermission("/users/admin", "/settings.js", "application/javascript", ADMIN);
-    servFileWithPermission("/users/admin", "/wifi-high-svgrepo-com.svg", "image/svg+xml", ADMIN);
-    taskYIELD();
-}
-
 /**
  * @brief get wifi packet from websocket and process it
  */

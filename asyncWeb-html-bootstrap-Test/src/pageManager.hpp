@@ -29,7 +29,7 @@ typedef enum {
 
 typedef struct {
   String name;
-  String sessionID;
+  String sessionId;
   user_permission permission;
 } session_Identifier_t;
 
@@ -53,8 +53,6 @@ private:
     cJSON parsReport(char *json);
 
     user_permission translatePermission(String permission);
-
-    String getPacketPart(cJSON & json, String partName);
     
     void serveStaticFiles(const char *path);
 
@@ -72,15 +70,15 @@ private:
     void saveSession(String sessionID, String name, user_permission permission);
 
     // Calibrator
-    user_permission calibratorProcess(cJSON & json);
+    void calibratorProcess(cJSON & json);
     void pushCalibratorPage();
 
     // Worker
-    user_permission workerProcess(cJSON & json);
+    void workerProcess(cJSON & json);
     void pushWorkerPage();
 
     // Admin
-    user_permission adminProcess(cJSON & json);
+    void adminProcess(cJSON & json);
     void pushAdminPage();
 
     void wifiEvent(cJSON & json);

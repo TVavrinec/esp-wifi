@@ -1,31 +1,3 @@
-// // WebSockets client
-// const ws = new WebSocket('ws://' + location.hostname + '/ws');
-
-// ws.addEventListener('open', () => {
-//     console.log('WebSocket connection established');
-// });
-
-// ws.addEventListener('message', (event) => {
-//     const data = JSON.parse(event.data);
-
-//     if (data.type === 'login') {
-//         if (data.user) {
-//             ws.close();
-//             // Go to desired page
-//             fetch('/'+data.user+'.html', {
-//                 headers: {
-//                     'Session-ID': 'your-session-id-goes-here',
-//                 },
-//             })            
-//             window.location.href = '/'+data.user+'.html';
-//         } else {
-//             // Show error message
-//             console.error('Login failed');
-//         }
-//     }
-// });
-
-
 document.querySelector('form').addEventListener('submit', function(event) {
     event.preventDefault();
 

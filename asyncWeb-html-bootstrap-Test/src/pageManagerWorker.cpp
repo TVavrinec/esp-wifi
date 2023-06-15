@@ -1,9 +1,8 @@
 #include "pageManager.hpp"
 
-user_permission pageManager::workerProcess(cJSON& json)
+void pageManager::workerProcess(cJSON& json)
 {
 
-    return WORKER;
 }
 
 void pageManager::pushWorkerPage()
@@ -12,4 +11,3 @@ void pageManager::pushWorkerPage()
     serveStaticFiles("/web/");
     _ws->textAll("{\"type\":\"login\",\"user\":\"worker\"}");
 }
-

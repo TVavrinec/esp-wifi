@@ -35,6 +35,22 @@ pageManager::~pageManager()
 }
 
 // private:
+/**
+ * @brief push admin page to all clients
+ */
+void pageManager::pushAdminPage()
+{
+    servFileWithPermission("/users/admin", "/admin.html", "text/html", ADMIN);
+    servFileWithPermission("/users/admin", "/adminScript.js", "application/javascript", ADMIN);
+    servFileWithPermission("/users/admin", "/settings.js", "application/javascript", ADMIN);
+    servFileWithPermission("/users/admin", "/wifi-high-svgrepo-com.svg", "image/svg+xml", ADMIN);
+    taskYIELD();
+}
+
+/**
+ * @param String version of permission
+ * @return user_permission permission
+ */
 user_permission pageManager::translatePermission(String permission)
 {
     if (permission == "WORKER")
@@ -56,6 +72,11 @@ user_permission pageManager::translatePermission(String permission)
     taskYIELD();
 }
 
+/**
+ * @brief generate session id
+ * 
+ * @return String session id
+ */
 String pageManager::generateSessionId()
 {
     String sessionId = "";
@@ -67,6 +88,13 @@ String pageManager::generateSessionId()
     return sessionId;
 }
 
+/**
+ * @brief check if is user in database with this password
+ * 
+ * @param name - user name
+ * @param password - user password
+ * @return user_permission - user permission
+ */
 user_permission pageManager::checkUser(String name, String password)
 {
     String uerPermission = _userDatabaze->getRecordCell(name.c_str(), "permission");
@@ -82,15 +110,27 @@ user_permission pageManager::checkUser(String name, String password)
     return NO_PERMITION;
 }
 
+/**
+ * @brief save session to session list
+ * 
+ * @param sessionID - session id
+ * @param name - user name
+ * @param permition - user permission
+ */
 void pageManager::saveSession(String sessionID, String name, user_permission permition){
     session_Identifier_t session;
     session.name = name;
-    session.sessionID = sessionID;
+    session.sessionId = sessionID;
     session.permission = permition;
     _sessions.push_back(session);
-    printf("saveSession: %s | %s | %s\n", session.name.c_str(), session.sessionID.c_str(), String(session.permission).c_str());
 }
 
+/**
+ * @brief get permission from session id
+ * 
+ * @param request - request from client
+ * @return user_permission - user permission
+ */
 user_permission pageManager::getSessionPermission(AsyncWebServerRequest *request){
     String sessionId = "";
     if (request->hasHeader("Cookie"))
@@ -110,7 +150,7 @@ user_permission pageManager::getSessionPermission(AsyncWebServerRequest *request
     }
     for (int i = 0; i < _sessions.size(); i++)
     {
-        if (_sessions[i].sessionID == sessionId)
+        if (_sessions[i].sessionId == sessionId)
         {
             return _sessions[i].permission;
         }
@@ -119,6 +159,14 @@ user_permission pageManager::getSessionPermission(AsyncWebServerRequest *request
     return NO_PERMITION;
 }
 
+/**
+ * @brief serves a file with the specified permission level
+ * 
+ * @param path - path to file in LittleFS
+ * @param fileName - file name
+ * @param contentType - content type
+ * @param permission - permission level
+ */
 void pageManager::servFileWithPermission(String path, String fileName, String contentType, const user_permission permission){
     bool noNeedPermission = (permission == NO_PERMITION) ? true : false;
     _server->on(fileName.c_str(), HTTP_GET, [&, path, fileName, contentType, permission, noNeedPermission](AsyncWebServerRequest *request) {
@@ -131,6 +179,9 @@ void pageManager::servFileWithPermission(String path, String fileName, String co
         });
 }
 
+/**
+ * @brief push login page to all clients
+ */
 void pageManager::pushLoginPage()
 {
     _server->on("/login", HTTP_GET, [&](AsyncWebServerRequest *request) {
@@ -149,11 +200,8 @@ void pageManager::pushLoginPage()
             String password = cJSON_GetObjectItem(pars_data, "password")->valuestring;
             
             String requestBody = String((char*)data);
-            printf("%s\n", requestBody.c_str());
 
-            if (username != "" && password != "") {
-                printf("uesrname: %s | password: %s \n", username.c_str(), password.c_str());
-                
+            if (username != "" && password != "") {                
                 user_permission permition = checkUser(username, password);
                 
                 if (permition != NO_PERMITION) {
@@ -163,11 +211,6 @@ void pageManager::pushLoginPage()
                     AsyncWebServerResponse *response = request->beginResponse(200, "application/json", String("{\"type\":\"login\",\"user\":\"admin\"}"));
                     response->addHeader("Set-Cookie", "sessionId=" + sessionId + "; Path=/; HttpOnly");
                     request->send(response);
-                    // AsyncWebServerResponse *response = request->beginResponse(200);
-                    // response->addHeader("Set-Cookie", "sessionId=" + sessionId + "; Path=/; HttpOnly");
-                    // request->send(response);
-                    // request->send(200, "application/json", String("{\"type\":\"login\",\"user\":\"admin\"}"));
-                    // _ws->textAll("{\"type\":\"login\",\"user\":\"admin\"}");
                 }
                 else {
                     request->send(401, "text/plain", "Unauthorized");
@@ -180,46 +223,24 @@ void pageManager::pushLoginPage()
 
 void pageManager::processReport(uint8_t *json)
 {
-    static user_permission state = NO_PERMITION;
-    user_permission newState;
-
     cJSON pars_data = *cJSON_Parse((char *)json);
-  
-    switch (state)
+    
+    cJSON *packet_type = cJSON_GetObjectItem(&pars_data, "type");
+    if(packet_type != NULL)
     {
-    case NO_PERMITION:
-        break;
-    case WORKER:
-        newState = workerProcess(pars_data);
-        break;
-    case ADMIN:
-        newState = adminProcess(pars_data);
-        break;
-    case CALIBRATOR:
-        newState = calibratorProcess(pars_data);
-        break;
-    }
-    if (state != newState)
-    {
-        state = newState;
-        switch (state)
+        String type = packet_type->valuestring;
+        if (type == "wifi")
         {
-        case NO_PERMITION:
-            printf("go to LOGIN\n");
-            pushLoginPage();
-            break;
-        case WORKER:
-            printf("go to WORKER\n");
-            pushWorkerPage();
-            break;
-        case ADMIN:
-            printf("go to ADMIN\n");
-            pushAdminPage();
-            break;
-        case CALIBRATOR:
-            printf("go to CALIBRATOR\n");
-            pushCalibratorPage();
-            break;
+            wifiEvent(pars_data);
+        }
+        else if (type == "general")
+        {
+            printf("general\n");
+            sendWifiList();
+        }
+        else
+        {
+            printf("Wrong: Unknown packet type\n");
         }
     }
     taskYIELD();
@@ -237,7 +258,6 @@ void pageManager::serveStaticFiles(const char *path)
             if (LittleFS.exists(filePath))
             {
                 _server->serveStatic(file.name(), LittleFS, filePath.c_str());
-                printf("serveStatic: %s\n", filePath.c_str());
             }
             file.close();
             file = root.openNextFile();
@@ -259,6 +279,7 @@ void pageManager::onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client
     }
     else if (type == WS_EVT_DATA)
     {
+        printf("data: %s\n", data);
         _instance->processReport(data);
     }
     taskYIELD();

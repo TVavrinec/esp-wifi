@@ -31,7 +31,7 @@ function wifiPasswordButton(){
   const password = document.getElementById('password').value;
   const ssid = document.getElementById('wifiName').innerText;
   // Send login data via WebSocket
-  ws.send(JSON.stringify({ 
+  ws.send(JSON.stringify({
     type: 'wifi', 
     station: {
       ssid, 
@@ -44,7 +44,7 @@ function wifiAction(element){
   console.log("I wont connect to: " + element.id);
   const ssid = element.id;
   lastconnectedWifiSsid = ssid;
-  ws.send(JSON.stringify({ 
+  ws.send(JSON.stringify({
     type: 'wifi', 
     station: {
       ssid
@@ -69,7 +69,7 @@ function apSetButton(){
   const password = document.getElementById('apPassword').value;
   console.log("SSID: " + ssid + " Password: " + password);
 
-  ws.send(JSON.stringify({ 
+  ws.send(JSON.stringify({
     type: 'wifi', 
     ap: {
       ssid, 
@@ -79,8 +79,8 @@ function apSetButton(){
 }
 
 function apOnButton(){
-  ws.send(JSON.stringify({ 
-    type: 'wifi', 
+  ws.send(JSON.stringify({
+    type: 'wifi',
     ap: {
       on: true
     }
@@ -88,8 +88,8 @@ function apOnButton(){
 }
 
 function apOffButton(){  
-  ws.send(JSON.stringify({ 
-    type: 'wifi', 
+  ws.send(JSON.stringify({
+    type: 'wifi',
     ap: {
       on: false
     }
@@ -97,7 +97,7 @@ function apOffButton(){
 }
 
 function wifiLitRegest(){
-  ws.send(JSON.stringify({ 
+  ws.send(JSON.stringify({
     type: 'wifi', 
     station: {
       get: 'wifi_list'
@@ -189,6 +189,7 @@ function solverWifiMessage(message){
 ws.addEventListener('open', () => {
   console.log('WebSocket connection established');
   ws.send(JSON.stringify({ 
+    
     type: 'general', 
     get: 'admin' 
   }));
