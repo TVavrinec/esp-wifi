@@ -4,6 +4,7 @@
 #include "freertos/task.h"
 #include "tunnel.hpp"
 
+//************************************************************************************************************************************************************************************
 TunnelTcpUart::TunnelTcpUart(int tcpPort, IPAddress clientId, HardwareSerial &uart)
 : _clientId(clientId), _uart(uart)
 {
@@ -26,9 +27,8 @@ void TunnelTcpUart::begin()
     _server->onClient([](void *h, AsyncClient* client){
         TunnelTcpUart *self = (TunnelTcpUart *)h;
         self->_clients.push_back(client);
-        self->_clientId = client->remoteIP();
-        printf("New client IP: %s\n", self->_clientId.toString().c_str());
-        // printf("New client IP: %s\n", client->remoteIP().toString().c_str());
+        printf("self->_clientId: %s\n", self->_clientId.toString().c_str());
+        printf("client->remoteIP: %s\n", client->remoteIP().toString().c_str());
 
         // Handle client disconnection
         client->onDisconnect([](void *h, AsyncClient* client){
@@ -76,4 +76,66 @@ void TunnelTcpUart::end()
 {
     _server->end();
     vTaskDelete(_ttuTaskHandle);
+}
+
+
+//************************************************************************************************************************************************************************************
+
+TunnelTcpTcp::TunnelTcpTcp(int tcpPort, IPAddress clientIdA, IPAddress clientIdB)
+: _clientIdA(clientIdA), _clientIdB(clientIdB)
+{
+    _server = new AsyncServer(tcpPort);
+    _clientIdA = clientIdA;
+    _clientIdB = clientIdB;
+    printf("TunnelTcpTcp created\n");
+}
+
+TunnelTcpTcp::~TunnelTcpTcp()
+{
+    end();
+    delete _server;
+}
+
+void TunnelTcpTcp::begin()
+{
+    _server->begin();
+    printf("TunnelTcpUart begin\n");
+    _server->onClient([](void *h, AsyncClient* client){
+        TunnelTcpTcp *self = (TunnelTcpTcp *)h;
+        self->_clients.push_back(client);
+        printf("client->remoteIP: %s\n", client->remoteIP().toString().c_str());
+
+        // Handle client disconnection
+        client->onDisconnect([](void *h, AsyncClient* client){
+            TunnelTcpTcp *self = (TunnelTcpTcp *)h;
+            self->_clients.erase(std::remove(self->_clients.begin(), self->_clients.end(), client), self->_clients.end());
+            delete client;
+        }, self);
+
+        // Handle incoming data
+        client->onData([](void *obj, AsyncClient* c, void *data, size_t len){
+            TunnelTcpTcp *self = (TunnelTcpTcp *)obj;
+            if(c->remoteIP() == self->_clientIdA){
+                for (AsyncClient* client : self->_clients) {
+                    if(client->remoteIP() == self->_clientIdB) {
+                        client->write((char *)data, len);
+                        Serial0.printf("A:  %s\n", data);    
+                    }
+                }
+            }
+            else if(c->remoteIP() == self->_clientIdB){
+                for (AsyncClient* client : self->_clients) {
+                    if(client->remoteIP() == self->_clientIdA) {
+                        client->write((char *)data, len);
+                        Serial0.printf("B:  %s\n", data);    
+                    }
+                }
+            }
+        }, self);
+    }, this);
+}
+
+void TunnelTcpTcp::end()
+{
+    _server->end();
 }

@@ -26,24 +26,22 @@ public:
 };
 
 
-// class TunnelTcpTcp
-// {
-// private:
-//     int _tcpPort0;
-//     int _tcpPort1;
-//     uint8_t _buff[BUFFER_SIZE];
+class TunnelTcpTcp
+{
+private:
+    AsyncServer *_server;
 
-//     TaskHandle_t _tunnel = NULL;
+    IPAddress _clientIdA;
+    IPAddress _clientIdB;
 
-//     void loop(WiFiClient *clientWifiTunnel, HardwareSerial *localUart);
-//     static void tunnelProcess(void *self_);
+    std::vector<AsyncClient*> _clients;
+public:
+    TunnelTcpTcp(int tcpPort, IPAddress clientIdA, IPAddress clientIdB);
+    ~TunnelTcpTcp();
 
-// public:
-//     TunnelTcpTcp(int tcpPort0, int tcpPort1);
-
-//     void start();
-//     void end();
-// };
+    void begin();
+    void end();
+};
 
 
 // prototype *******************************************************************************************************************************************

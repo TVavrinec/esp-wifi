@@ -42,8 +42,6 @@ struct wifiNetwork{
 class wifiNetworkManager
 {
 private:
-    std::mutex _mutex__;
-
     const int _firstStationRecord = 2;
 
     String _AP_ssid;

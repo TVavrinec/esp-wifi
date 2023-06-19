@@ -22,6 +22,8 @@ csvDatabese::csvDatabese(const char *filename) {
         line = file.readStringUntil('\n');
         _data.push_back(parsLine(line));
     }
+    file.close();
+    printf("csvDatabese created\n");
 }
 
 /*
@@ -31,9 +33,7 @@ csvDatabese::csvDatabese(const char *filename) {
     * @param cellName - name of Column
     * @return String - cell
 */
-String csvDatabese::getRecordCell(String name, String columnName) {
-    std::lock_guard<std::mutex> lock(_mutex__);
-    
+String csvDatabese::getRecordCell(String name, String columnName) {    
     int cellNubmer = -1;
     for (int i = 0; i < _data[0].size(); i++)
     {
@@ -43,7 +43,7 @@ String csvDatabese::getRecordCell(String name, String columnName) {
         }
     }
     if (cellNubmer == -1) {
-        Serial.printf("Error: Wrong column name %s, in csvDatabaze.cpp on %d line\n", columnName, __LINE__);
+        printf("Error: Wrong column name %s, in csvDatabaze.cpp on %d line\n", columnName, __LINE__);
         return "";
     }
     String record;
@@ -67,17 +67,16 @@ String csvDatabese::getRecordCell(String name, String columnName) {
 String csvDatabese::getRecordCell(int index, String columnName) {
 
     if (index < 0 || index >= _data.size()) {
-        Serial.printf("Warning: Wrong index %d, in csvDatabaze.cpp on %d line\n", index, __LINE__);
+        printf("Warning: Wrong index %d, in csvDatabaze.cpp on %d line\n", index, __LINE__);
         return "";
     }
-    std::lock_guard<std::mutex> lock(_mutex__);
-    for (int i = 0; i < _data[0].size(); i++)
+        for (int i = 0; i < _data[0].size(); i++)
     {
         if (_data[0][i] == columnName) {
             return _data[index][i];
         }
     }
-    Serial.printf("Error: Wrong column name %s, in csvDatabaze.cpp on line %d\n", columnName, __LINE__);
+    printf("Error: Wrong column name %s, in csvDatabaze.cpp on line %d\n", columnName, __LINE__);
     return "";
 }
 
@@ -87,8 +86,7 @@ String csvDatabese::getRecordCell(int index, String columnName) {
     * @return std::vector<String> - vector of records name
 */
 std::vector<String> csvDatabese::getRecordsName() {
-    std::lock_guard<std::mutex> lock(_mutex__);
-
+    
     std::vector<String> recordsName;
     for (int i = 0; i < _data.size(); i++)
     {
@@ -101,8 +99,7 @@ std::vector<String> csvDatabese::getRecordsName() {
     * @brief Print database
 */
 void csvDatabese::printDatabase() {
-    std::lock_guard<std::mutex> lock(_mutex__);
-
+    
     for (int i = 0; i < _data.size(); i++)
     {
         for (int j = 0; j < _data[i].size(); j++)
@@ -119,8 +116,7 @@ void csvDatabese::printDatabase() {
     * @param record - vector of cells
 */
 void csvDatabese::addRecord(std::vector<String> record) {
-    std::lock_guard<std::mutex> lock(_mutex__);
-
+    
     for (int a = 0; a < _data.size(); a++)
     {
         if (_data[a][0] == record[0]) {
@@ -138,8 +134,7 @@ void csvDatabese::addRecord(std::vector<String> record) {
     * @param record - vector of cells
 */
 void csvDatabese::changeRecord(String name, std::vector<String> record) {
-    std::lock_guard<std::mutex> lock(_mutex__);
-
+    
     for (int i = 0; i < _data.size(); i++)
     {
         if (_data[i][0] == name) {
@@ -158,8 +153,7 @@ void csvDatabese::changeRecord(String name, std::vector<String> record) {
     * @param value - new value
 */
 void csvDatabese::changeRecord(String name, String columnName, String value) {
-    std::lock_guard<std::mutex> lock(_mutex__);
-
+    
     for (int i = 0; i < _data.size(); i++)
     {
         if (_data[i][0] == name) {
@@ -183,10 +177,9 @@ void csvDatabese::changeRecord(String name, String columnName, String value) {
     * @param record - vector of cells
 */
 void csvDatabese::changeRecord(int index, std::vector<String> record) {
-    std::lock_guard<std::mutex> lock(_mutex__);
-
+    
     if (index < 1 || index >= _data.size()) {
-        Serial.printf("Warning: Wrong index %d, in csvDatabaze.cpp on %d line\n", index, __LINE__);
+        printf("Warning: Wrong index %d, in csvDatabaze.cpp on %d line\n", index, __LINE__);
         return;
     }
     _data[index] = record;
@@ -201,10 +194,9 @@ void csvDatabese::changeRecord(int index, std::vector<String> record) {
     * @param value - new value
 */
 void csvDatabese::changeRecord(int index, String columnName, String value) {
-    std::lock_guard<std::mutex> lock(_mutex__);
-
+    
     if (index < 1 || index >= _data.size()) {
-        Serial.printf("Warning: Wrong index %d, in csvDatabaze.cpp on %d line\n", index, __LINE__);
+        printf("Warning: Wrong index %d, in csvDatabaze.cpp on %d line\n", index, __LINE__);
         return;
     }
     for (int j = 0; j < _data[index].size(); j++)
@@ -223,8 +215,7 @@ void csvDatabese::changeRecord(int index, String columnName, String value) {
     * @param name - name of record
 */
 void csvDatabese::deleteRecord(const char *name) {
-    std::lock_guard<std::mutex> lock(_mutex__);
-
+    
     String nameStr = String(name);
     for (int i = 0; i < _data.size(); i++)
     {
@@ -243,8 +234,7 @@ void csvDatabese::deleteRecord(const char *name) {
     * @return std::vector<String> - vector of cells
 */
 std::vector<String> csvDatabese::getRecord(const char *name) {
-    std::lock_guard<std::mutex> lock(_mutex__);
-
+    
     String nameStr = String(name);
     for (int i = 0; i < _data.size(); i++)
     {
@@ -252,7 +242,7 @@ std::vector<String> csvDatabese::getRecord(const char *name) {
             return _data[i];
         }
     }
-    // Serial.printf("Error: Wrong name %s, in csvDatabaze.cpp on %d line\n", name, __LINE__);
+    // printf("Error: Wrong name %s, in csvDatabaze.cpp on %d line\n", name, __LINE__);
     return std::vector<String>();
 }
 
@@ -263,10 +253,8 @@ std::vector<String> csvDatabese::getRecord(const char *name) {
  * @return std::vector<String> - vector of cells
 */
 std::vector<String> csvDatabese::getRecord(int number) {
-    std::lock_guard<std::mutex> lock(_mutex__);
-
     if (number < 0 || number >= _data.size()) {
-        Serial.printf("Warning: Wrong number %d, in csvDatabaze.cpp on %d line\n", number, __LINE__);
+        printf("Warning: Wrong number %d, in csvDatabaze.cpp on %d line\n", number, __LINE__);
         return std::vector<String>();
     }
     return _data[number];

@@ -14,8 +14,8 @@ wifiNetworkManager::wifiNetworkManager(csvDatabese *wifiDatabaze, bool AP_always
             delay(1000);
             printf("Connecting to WiFi...\n");
         }
-        printf("Connected to WiFi\n");    
-        printf("IP address: %s\n", WiFi.localIP().toString().c_str());
+        printf("Connected to WiFi on IP address: %s\n", WiFi.localIP().toString().c_str());
+        delay(3);
     }
     else
     {
@@ -38,8 +38,6 @@ wifiNetworkManager::~wifiNetworkManager()
 */
 wifiNetwork wifiNetworkManager::getConnectedWifiNetwork()
 {
-    std::lock_guard<std::mutex> lock(_mutex__);
-
     return wifiNetwork{
         _connectedWifiNetwork, 
         WiFi.RSSI()
@@ -53,8 +51,7 @@ wifiNetwork wifiNetworkManager::getConnectedWifiNetwork()
  */
 std::vector<wifiNetwork> wifiNetworkManager::getAvailableWifiList()
 {
-    std::lock_guard<std::mutex> lock(_mutex__);
-    
+        
     int numNetworks = WiFi.scanNetworks();
     std::vector<wifiNetwork> availableWifiList;
     for(int i = 0; i < numNetworks; i++){
@@ -86,7 +83,13 @@ wifi_save_status_t wifiNetworkManager::changeActiveWifi(String ssid, String pass
         }
     }
     if(changeActiveWifi(ssid) == UNSAVED){
-        _wifiDatabaze->addRecord(std::vector<String>{ssid, password, "active"});
+        if((password.length() >= 8) && (password.length() <= 63) && (ssid.length() >= 2) && (ssid.length() <= 31)){
+            _wifiDatabaze->addRecord(std::vector<String>{ssid, password, "active"});
+            return SAVED;
+        }
+        else{
+            return UNSAVED;
+        }
     }
 };
 
@@ -137,8 +140,6 @@ wifi_save_status_t wifiNetworkManager::changeAP(String ssid, String password){
  * Start station
  */
 void wifiNetworkManager::startStation(){
-    std::lock_guard<std::mutex> lock(_mutex__);
-
     WiFi.begin(_connectedWifiNetwork.c_str(), _connectedWifiPassword.c_str());
 };
 
@@ -146,8 +147,6 @@ void wifiNetworkManager::startStation(){
  * Stop station
  */
 void wifiNetworkManager::stopStation(){
-    std::lock_guard<std::mutex> lock(_mutex__);
-
     WiFi.mode(WIFI_OFF);
 };
 
