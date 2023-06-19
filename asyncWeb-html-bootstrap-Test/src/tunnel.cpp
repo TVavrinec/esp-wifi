@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -119,7 +118,6 @@ void TunnelTcpTcp::begin()
                 for (AsyncClient* client : self->_clients) {
                     if(client->remoteIP() == self->_clientIdB) {
                         client->write((char *)data, len);
-                        Serial0.printf("A:  %s\n", data);    
                     }
                 }
             }
@@ -127,7 +125,6 @@ void TunnelTcpTcp::begin()
                 for (AsyncClient* client : self->_clients) {
                     if(client->remoteIP() == self->_clientIdA) {
                         client->write((char *)data, len);
-                        Serial0.printf("B:  %s\n", data);    
                     }
                 }
             }
