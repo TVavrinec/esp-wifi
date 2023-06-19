@@ -29,7 +29,10 @@ public:
 
     void addRecord(std::vector<String> record);
 
-    void changeRecord(const char *name, std::vector<String> record);
+    void changeRecord(String name, std::vector<String> record);
+    void changeRecord(String name, String columnName, String value);
+    void changeRecord(int index, std::vector<String> record);
+    void changeRecord(int index, String columnName, String value);
 
     void deleteRecord(const char *name);
 
@@ -42,7 +45,8 @@ public:
         return _data[0].size();
     }
 
-    String getRecordCell(const char *name, const char *columnName);
+    String getRecordCell(String name, String columnName);
+    String getRecordCell(int index, String columnName);
 
     std::vector<String> getRecord(const char *name);
     std::vector<String> getRecord(int index);

@@ -1,5 +1,6 @@
-ssid,password
-my_WiFi,12345678
-Vodafone-AEA0,WS677xkrpuh2arAe
-tom-hotspot,tomvav57
-U Cendy 2.4G,St5el@4en2k
+ssid,password,activity
+my_WiFi,12345678,active
+Vodafone-AEA0,WS677xkrpuh2arAe,active
+tom-hotspot,tomvav57,inactive
+U Cendy 2.4G,St5el@4en2k,inactive
+e7eVera,vceliN2020

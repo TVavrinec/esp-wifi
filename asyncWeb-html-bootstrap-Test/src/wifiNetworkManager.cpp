@@ -7,7 +7,14 @@ wifiNetworkManager::wifiNetworkManager(csvDatabese *wifiDatabaze, bool AP_always
     if(availableWifi != ""){
         _connectedWifiNetwork = availableWifi;
         _connectedWifiPassword = _wifiDatabaze->getRecordCell(availableWifi.c_str(), "password");
-        printf("wifi %s %s conect\n", availableWifi.c_str(), WiFi.begin(availableWifi.c_str(), _connectedWifiPassword.c_str()) ? "is" : "is not");
+        WiFi.begin(availableWifi.c_str(), _connectedWifiPassword.c_str());
+        printf("Ssid: %s password: %s\n",availableWifi.c_str(), _connectedWifiPassword.c_str());
+        while (WiFi.status() != WL_CONNECTED)
+        {
+            delay(1000);
+            printf("Connecting to WiFi...\n");
+        }
+        printf("Connected to WiFi\n");    
         printf("IP address: %s\n", WiFi.localIP().toString().c_str());
     }
     else
@@ -17,7 +24,6 @@ wifiNetworkManager::wifiNetworkManager(csvDatabese *wifiDatabaze, bool AP_always
     if(AP_always_on){
         _startAP(AP_ssid, AP_password);
     }
-    
 };
 
 wifiNetworkManager::~wifiNetworkManager()
@@ -64,60 +70,68 @@ std::vector<wifiNetwork> wifiNetworkManager::getAvailableWifiList()
     return availableWifiList;
 };
 
-
 /**
- * Change wifi to the wifi with ssid and password from parameters and save it to the database
+ * Change active wifi in the wifi database
  * @param ssid      ssid of wifi
  * @param password  password of wifi
+ * 
+ * @return true if wifi is changed, false if wifi is not changed
  */
-wifi_result_t wifiNetworkManager::changeWifi(String ssid, String password)
+wifi_save_status_t wifiNetworkManager::changeActiveWifi(String ssid, String password)
 {
-    std::lock_guard<std::mutex> lock(_mutex__);
-
-    WiFi.disconnect();
-    if(WiFi.begin(ssid.c_str(), password.c_str())){
-        _connectedWifiNetwork = ssid;
-        _connectedWifiPassword = password;
-        std::vector<String> WifiConnectionDetails;
-        WifiConnectionDetails.push_back(ssid);
-        WifiConnectionDetails.push_back(password);
-        _wifiDatabaze->addRecord(WifiConnectionDetails);
-
-        return CONNECTED;
+    for(int i = _firstStationRecord; i < _wifiDatabaze->getNumberOfRecords(); i++){
+        if(_wifiDatabaze->getRecordCell(i, "activity") == "active"){
+            _wifiDatabaze->changeRecord(i, "activity", "active");
+            return SAVED;
+        }
     }
-    return NO_WIFI;
+    if(changeActiveWifi(ssid) == UNSAVED){
+        _wifiDatabaze->addRecord(std::vector<String>{ssid, password, "active"});
+    }
 };
 
 /**
- * Change wifi to the wifi with ssid from parameters and save it to the database
+ * Change active wifi in the wifi database
  * @param ssid      ssid of wifi
- * @return CONNECTED if wifi is connected, UNKNOW_WIFI if wifi is not in database, NO_WIFI if this wifi is not available
-*/
-wifi_result_t wifiNetworkManager::changeWifi(String ssid)
-{    
-    std::lock_guard<std::mutex> lock(_mutex__);
+ * 
+ * @return true if wifi is changed, false if wifi is not changed
+ */
+wifi_save_status_t wifiNetworkManager::changeActiveWifi(String ssid){
+    String password = _wifiDatabaze->getRecordCell(ssid.c_str(), "password");
+    if(password == ""){
+        return UNSAVED;
+    }
+    for(int i = _firstStationRecord; i < _wifiDatabaze->getNumberOfRecords(); i++){
+        if(_wifiDatabaze->getRecordCell(i, "activity") == "active"){
+            _wifiDatabaze->changeRecord(i, "activity", "inactive");
+            break;
+        }
+    }
+    for(int i = _firstStationRecord; i < _wifiDatabaze->getNumberOfRecords(); i++){
+        if(_wifiDatabaze->getRecordCell(i, "ssid") == ssid){
+            _wifiDatabaze->changeRecord(i, "activity", "active");
+            return SAVED;
+        }
+    }
+    return UNSAVED;
+}
 
-    std::vector<String> WifiConnectionDetails = _wifiDatabaze->getRecord(ssid.c_str());
-    if(WifiConnectionDetails.size() > 1){
-        String oldSsid = WiFi.SSID();
-        String oldPassword = WiFi.psk();
-        WiFi.disconnect();
-        if(WiFi.begin(ssid.c_str(), WifiConnectionDetails[1].c_str()) == WL_CONNECTED){
-            _connectedWifiNetwork = ssid;
-            _connectedWifiPassword = WifiConnectionDetails[1];
-            return CONNECTED;
-        }
-        else
-        {
-            WiFi.begin(oldSsid.c_str(), oldPassword.c_str());
-            return NO_WIFI;
-        }
+/**
+ * Change AP in the wifi database
+ * @param ssid      ssid of AP
+ * @param password  password of AP
+ * 
+ * @return true if AP is changed, false if AP is not changed
+ */
+wifi_save_status_t wifiNetworkManager::changeAP(String ssid, String password){
+    if((password.length() >= 8) && (password.length() <= 63) && (ssid.length() >= 2) && (ssid.length() <= 31)){
+        _wifiDatabaze->changeRecord(1, std::vector<String>{ssid, password,  _wifiDatabaze->getRecordCell(1, "activity")});
+        return SAVED;
     }
-    else
-    {
-        return UNKNOW_WIFI;
+    else{
+        return UNSAVED;
     }
-};
+}
 
 /**
  * Start station
@@ -137,39 +151,18 @@ void wifiNetworkManager::stopStation(){
     WiFi.mode(WIFI_OFF);
 };
 
-
-/**
- * Restart AP with ssid and password from parameters
- * @param AP_ssid       ssid of AP
- * @param AP_password   password of AP
- */
-void wifiNetworkManager::restartAP(const char* AP_ssid, const char* AP_password)
-{
-    std::lock_guard<std::mutex> lock(_mutex__);
-
-    _wifiDatabaze->changeRecord(_AP_ssid.c_str(), std::vector<String>{AP_ssid, AP_password});
-    WiFi.softAPdisconnect(true);
-    _AP_ssid = AP_ssid;
-    _AP_password = AP_password;
-    WiFi.softAP(_AP_ssid.c_str(), _AP_password.c_str());
-};
-
 /**
  * Stop AP
  */
 void wifiNetworkManager::stopAP(){
-    std::lock_guard<std::mutex> lock(_mutex__);
-
-    WiFi.softAPdisconnect(true);
+    _wifiDatabaze->changeRecord(1, "activity", "inactive");
 };
 
 /**
  * Start AP with ssid and password from object memory
  */
 void wifiNetworkManager::startAP(){
-    std::lock_guard<std::mutex> lock(_mutex__);
-
-    WiFi.softAP(_AP_ssid.c_str(), _AP_password.c_str());
+    _wifiDatabaze->changeRecord(1, "activity", "active");
 };
 
 // private:  ********************************************************************************************************************   private:

@@ -10,12 +10,12 @@ pageManager::pageManager(wifiNetworkManager *wifiManager, csvDatabese *userDatab
     
     _instance = this;
     
-    static AsyncWebServer server(80);
-    static AsyncWebSocket ws("/ws");
-    _server = &server;
-    _ws = &ws;
+    // static AsyncWebServer server(80);
+    // static AsyncWebSocket ws("/ws");
+    _server = new AsyncWebServer(80);
+    _ws = new AsyncWebSocket("/ws");
 
-    _ws->onEvent(&onWsEvent);
+    _ws->onEvent(onWsEvent);
     _server->addHandler(_ws);
 
     serveStaticFiles("/weblib/");
@@ -25,7 +25,6 @@ pageManager::pageManager(wifiNetworkManager *wifiManager, csvDatabese *userDatab
     _server->onNotFound([](AsyncWebServerRequest *request){
             request->send(404, "text/plain", "Not found"); 
         });
-
     _server->begin();
     taskYIELD();
 }
@@ -235,7 +234,6 @@ void pageManager::processReport(uint8_t *json)
         }
         else if (type == "general")
         {
-            printf("general\n");
             sendWifiList();
         }
         else
@@ -268,19 +266,22 @@ void pageManager::serveStaticFiles(const char *path)
 
 void pageManager::onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
 {
-    printf("onWsEvent\n");
+    printf("onWsEventtype = %d\n", type);
     if (type == WS_EVT_CONNECT)
     {
-        Serial.println("WS_EVT_CONNECT");
+        Serial.println("WS_EVT_CONNECT\n");
     }
     else if (type == WS_EVT_DISCONNECT)
     {
-        Serial.println("WS_EVT_DISCONNECT");
+        Serial.println("WS_EVT_DISCONNECT\n");
+
     }
     else if (type == WS_EVT_DATA)
     {
-        printf("data: %s\n", data);
         _instance->processReport(data);
+    }
+    else{
+        printf("Unknown event\n");
     }
     taskYIELD();
 }

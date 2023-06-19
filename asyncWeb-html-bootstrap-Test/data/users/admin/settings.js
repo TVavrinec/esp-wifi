@@ -96,7 +96,7 @@ function apOffButton(){
   }));
 }
 
-function wifiLitRegest(){
+function wifiListRequest(){
   ws.send(JSON.stringify({
     type: 'wifi', 
     station: {
@@ -126,16 +126,15 @@ function stationMessage(message){
   else if ('on' in message){
     
   }
-  else if ('connected' in message){
-    if(message.connected === 'unknown wifi'){
+  else if ('store' in message){
+    if(message.store === 'known_wifi'){
+      console.log('WiFi has been saved and the device connects after reboot');
+      wifiListRequest();
+    }
+    else if(message.store === 'unknown_wifi'){
+      console.log('WiFi in unknown');
       madeWifiPaswordWindow();
-    }
-    else if(message.connected === 'not available'){
-      console.log('WiFi not available');
-      wifiListRegest();
-    }
-    else if(message.connected === 'connected'){
-      wifiListRegest();
+      wifiListRequest();
     }
     else{
       console.log('Unknown "station" message');
@@ -163,6 +162,7 @@ function apMessage(message){
     }
     else{
       document.getElementById('apSetButton').style.backgroundColor = '#ff0000';
+      alert("AP settings are not saved!\n Check your entries to make sure the password is between 8 and 64 characters and try again.");
     }
   }
   else{
@@ -193,6 +193,13 @@ ws.addEventListener('open', () => {
     type: 'general', 
     get: 'admin' 
   }));
+});
+
+ws.addEventListener('close', () => {
+  console.log('WebSocket connection closed');
+  setTimeout(function() {
+    ws = new WebSocket('ws://' + location.hostname + '/ws');
+  }, 10000);
 });
 
 ws.addEventListener('message', (event) => {
@@ -246,8 +253,13 @@ document.getElementById('apForm').addEventListener('click', (event) => {
       break;
     case 'apSetButton':
       apSetButton();
-      break;    
+      break;
     default:
       console.log('Unknown button');
   }
+});
+
+document.getElementById('staUpdateButton').addEventListener('click', (event) => {
+  event.preventDefault();
+  wifiListRequest();
 });

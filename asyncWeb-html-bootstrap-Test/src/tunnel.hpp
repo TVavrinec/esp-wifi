@@ -1,22 +1,27 @@
 #pragma once
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
+#include <HardwareSerial.h>
 
 #define BUFFER_SIZE 1024
 
 class TunnelTcpUart
 {
 private:
-    HardwareSerial *_uart;
     AsyncServer *_server;
-    IPAddress *_clientId;
-    AsyncClient  *_client;
+    HardwareSerial &_uart;
+
+    TaskHandle_t *_ttuTaskHandle = NULL;
+
+    IPAddress _clientId;
+
+    std::vector<AsyncClient*> _clients;
 
 public:
-    TunnelTcpUart(int tcpPort, HardwareSerial uart, IPAddress *clientId);
+    TunnelTcpUart(int tcpPort, IPAddress clientId, HardwareSerial &uart);
     ~TunnelTcpUart();
 
-    void start();
+    void begin();
     void end();
 };
 

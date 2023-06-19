@@ -31,13 +31,13 @@ csvDatabese::csvDatabese(const char *filename) {
     * @param cellName - name of Column
     * @return String - cell
 */
-String csvDatabese::getRecordCell(const char *name, const char *columnName) {
+String csvDatabese::getRecordCell(String name, String columnName) {
     std::lock_guard<std::mutex> lock(_mutex__);
     
     int cellNubmer = -1;
     for (int i = 0; i < _data[0].size(); i++)
     {
-        if (_data[0][i] == columnName) {
+        if (_data[0][i] ==  columnName) {
             cellNubmer = i;
             break;
         }
@@ -47,15 +47,38 @@ String csvDatabese::getRecordCell(const char *name, const char *columnName) {
         return "";
     }
     String record;
-    String nameStr = String(name);
     for (int i = 0; i < _data.size(); i++)
     {
-        if (_data[i][0] == nameStr) {
+        if (_data[i][0] ==  name) {
             record = _data[i][cellNubmer];
             break;
         }
     }
     return record;
+}
+
+/*
+    * @brief Get cell from record by number
+    * 
+    * @param index - number of record
+    * @param cellName - name of Column
+    * @return String - cell
+*/
+String csvDatabese::getRecordCell(int index, String columnName) {
+
+    if (index < 0 || index >= _data.size()) {
+        Serial.printf("Warning: Wrong index %d, in csvDatabaze.cpp on %d line\n", index, __LINE__);
+        return "";
+    }
+    std::lock_guard<std::mutex> lock(_mutex__);
+    for (int i = 0; i < _data[0].size(); i++)
+    {
+        if (_data[0][i] == columnName) {
+            return _data[index][i];
+        }
+    }
+    Serial.printf("Error: Wrong column name %s, in csvDatabaze.cpp on line %d\n", columnName, __LINE__);
+    return "";
 }
 
 /*
@@ -114,14 +137,80 @@ void csvDatabese::addRecord(std::vector<String> record) {
     * @param name - name of record
     * @param record - vector of cells
 */
-void csvDatabese::changeRecord(const char *name, std::vector<String> record) {
+void csvDatabese::changeRecord(String name, std::vector<String> record) {
     std::lock_guard<std::mutex> lock(_mutex__);
 
-    String nameStr = String(name);
     for (int i = 0; i < _data.size(); i++)
     {
-        if (_data[i][0] == nameStr) {
+        if (_data[i][0] == name) {
             _data[i] = record;
+            break;
+        }
+    }
+    writeData();
+}
+
+/*
+    * @brief Change cell in record in database
+    *
+    * @param name - name of record
+    * @param columnName - name of column
+    * @param value - new value
+*/
+void csvDatabese::changeRecord(String name, String columnName, String value) {
+    std::lock_guard<std::mutex> lock(_mutex__);
+
+    for (int i = 0; i < _data.size(); i++)
+    {
+        if (_data[i][0] == name) {
+            for (int j = 0; j < _data[i].size(); j++)
+            {
+                if (_data[0][j] == columnName) {
+                    _data[i][j] = value;
+                    break;
+                }
+            }
+            break;
+        }
+    }
+    writeData();
+}
+
+/*
+    * @brief Change record in database
+    *
+    * @param index - number of record
+    * @param record - vector of cells
+*/
+void csvDatabese::changeRecord(int index, std::vector<String> record) {
+    std::lock_guard<std::mutex> lock(_mutex__);
+
+    if (index < 1 || index >= _data.size()) {
+        Serial.printf("Warning: Wrong index %d, in csvDatabaze.cpp on %d line\n", index, __LINE__);
+        return;
+    }
+    _data[index] = record;
+    writeData();
+}
+
+/*
+    * @brief Change cell in record in database
+    *
+    * @param index - number of record
+    * @param columnName - name of column
+    * @param value - new value
+*/
+void csvDatabese::changeRecord(int index, String columnName, String value) {
+    std::lock_guard<std::mutex> lock(_mutex__);
+
+    if (index < 1 || index >= _data.size()) {
+        Serial.printf("Warning: Wrong index %d, in csvDatabaze.cpp on %d line\n", index, __LINE__);
+        return;
+    }
+    for (int j = 0; j < _data[index].size(); j++)
+    {
+        if (_data[0][j] == columnName) {
+            _data[index][j] = value;
             break;
         }
     }

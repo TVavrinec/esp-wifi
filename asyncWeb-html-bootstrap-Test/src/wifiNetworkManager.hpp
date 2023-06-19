@@ -14,6 +14,11 @@ typedef enum {
     UNKNOW_PACKET
 } wifi_result_t;
 
+typedef enum { 
+    SAVED,
+    UNSAVED,
+} wifi_save_status_t;
+
 struct wifiNetwork{
     String ssid;
     int rssi;
@@ -39,6 +44,8 @@ class wifiNetworkManager
 private:
     std::mutex _mutex__;
 
+    const int _firstStationRecord = 2;
+
     String _AP_ssid;
     String _AP_password;
     String _connectedWifiNetwork;
@@ -48,9 +55,15 @@ private:
 
     void _startAP(const char* AP_ssid = "Exactis-SMC", const char* AP_password = "12345678");
 
+    // wifi_result_t changeWifi(String ssid, String password);
+    // wifi_result_t changeWifi(String ssid);
+    // void restartAP(const char* AP_ssid = "Exactis-SMC", const char* AP_password = "12345678");
 public:
-    wifi_result_t changeWifi(String ssid, String password);
-    wifi_result_t changeWifi(String ssid);
+
+    wifi_save_status_t changeActiveWifi(String ssid, String password);
+    wifi_save_status_t changeActiveWifi(String ssid);
+
+    wifi_save_status_t changeAP(String ssid, String password);
     
     void startStation();
     void stopStation();
@@ -58,7 +71,6 @@ public:
     wifiNetwork getConnectedWifiNetwork();
     std::vector<wifiNetwork> getAvailableWifiList();
 
-    void restartAP(const char* AP_ssid = "Exactis-SMC", const char* AP_password = "12345678");
     void stopAP();
     void startAP();
 

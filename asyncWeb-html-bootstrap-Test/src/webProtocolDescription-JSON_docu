@@ -99,7 +99,7 @@
 {
     "type": "wifi",
     "station": {
-        "connected": "connect" // "not available", "unknown wifi"
+        "store": "known_wifi" // "unknown_wifi"
     }
 }
 
@@ -119,7 +119,7 @@
 {
     "type": "wifi",
     "station": {
-        "connected": "connect" // "not available", "wrong password"
+        "connected": "known_wifi"
     }
 }
 

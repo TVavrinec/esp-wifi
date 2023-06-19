@@ -25,7 +25,6 @@ void pageManager::wifiEvent(cJSON &json)
     taskYIELD();
 }
 
-
 /**
  * solve ap packet
  */
@@ -36,7 +35,15 @@ void pageManager::apEvent(cJSON &json)
     if (ssid != NULL)
     {
         cJSON *password = cJSON_GetObjectItem(&json, "password");
-        _wifiManager->restartAP(ssid->valuestring, password->valuestring);
+        if(password != NULL)
+        {
+            if(_wifiManager->changeAP(ssid->valuestring, password->valuestring) == SAVED){
+                _ws->textAll("{\"type\":\"wifi\",\"ap\":{\"set\":true}}");
+            }
+            else{
+                _ws->textAll("{\"type\":\"wifi\",\"ap\":{\"set\":false}}");
+            }
+        }
     }
     else if (on != NULL)
     {
@@ -86,7 +93,7 @@ void pageManager::stationEvent(cJSON &json){
 */
 void pageManager::stationGetEvent(cJSON &json){
     String get = cJSON_GetObjectItem(&json, "get")->valuestring;
-    if (get == "list")
+    if (get == "wifi_list")
     {
         sendWifiList();
     }
@@ -101,15 +108,15 @@ void pageManager::stationGetEvent(cJSON &json){
  * solve station on packet
 */
 void pageManager::stationOnEvent(cJSON &json){
-    bool on = cJSON_GetObjectItem(&json, "on")->valueint;
-    if (on)
-    {
-        _wifiManager->startStation();
-    }
-    else
-    {
-        _wifiManager->stopStation();
-    }
+    // bool on = cJSON_GetObjectItem(&json, "on")->valueint;
+    // if (on)
+    // {
+    //     _wifiManager->startStation();
+    // }
+    // else
+    // {
+    //     _wifiManager->stopStation();
+    // }
     taskYIELD();
 }
 
@@ -120,28 +127,23 @@ void pageManager::stationSsidEvent(cJSON &json){
     String ssid = cJSON_GetObjectItem(&json, "ssid")->valuestring;
     cJSON *password = cJSON_GetObjectItem(&json, "password");
     if(password == NULL){
-        wifi_result_t connectState = _wifiManager->changeWifi(ssid);
-        String connectMessage; 
-        switch (connectState)
-        {
-            case CONNECTED:
-                connectMessage = "connect";
-                break;
-            case UNKNOW_WIFI:
-                connectMessage = "unknown wifi";
-                break;
-            case NO_WIFI:
-                connectMessage = "not available";
-                break;
-            default:
-                printf("Error: unknow wifi connectState in pageManagerAdmin.cpp file on %s line\n", __LINE__);
-                break;
+        wifi_save_status_t connectState = _wifiManager->changeActiveWifi(ssid);
+        String connectMessage;
+        if(connectState == SAVED){
+            connectMessage = "known_wifi";
         }
-        _ws->textAll("{\"type\":\"wifi\",\"station\":{\"connected\":\"" + connectMessage + "\"}}");
+        else if(connectState == UNSAVED){
+            connectMessage = "unknown_wifi";
+        }
+        _ws->textAll("{\"type\":\"wifi\",\"station\":{\"store\":\"" + connectMessage + "\"}}");
     }
     else{
-        if(_wifiManager->changeWifi(ssid, password->valuestring) != CONNECTED){
-            _ws->textAll("{\"type\":\"wifi\",\"station\":{\"connected\":\"not available\"}}");
+        printf("ssid: %s\n", ssid.c_str());
+        if(_wifiManager->changeActiveWifi(ssid, password->valuestring) != SAVED){
+            _ws->textAll("{\"type\":\"wifi\",\"station\":{\"store\":\"unknown_wifi\"}}");
+        }
+        else{
+            _ws->textAll("{\"type\":\"wifi\",\"station\":{\"store\":\"kown_wifi\"}}");
         }
     }
     taskYIELD();
